@@ -2,11 +2,15 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+build/
 .venv/
 venv/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Tool output (mdnow writes markdown here during use/tests)
+out/
 
 # OS
 .DS_Store

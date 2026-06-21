@@ -28,3 +28,6 @@ coverage
 
 # Allow running the project virtualenv interpreter
 !.venv
+
+# Allow git ops referencing the build artifact dir
+!build
