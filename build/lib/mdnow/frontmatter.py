@@ -9,8 +9,6 @@ import hashlib
 
 import yaml
 
-from . import outline
-
 
 def content_hash(body: str) -> str:
     return hashlib.sha256(body.strip().encode("utf-8")).hexdigest()
@@ -32,8 +30,6 @@ def build(
         "version": version,
         "content_hash": content_hash(body),
         "word_count": len(body.split()),
-        "token_estimate": outline.token_estimate(body),
-        "summary": outline.summary_of(body),
     }
 
 

@@ -12,6 +12,13 @@ def test_render_is_yaml_safe_for_colon_titles():
     assert doc.startswith("---\n") and "\n---\n\n" in doc and doc.rstrip().endswith("body")
 
 
+def test_build_includes_token_estimate_and_summary():
+    body = "# T\n\nThis is a meaningful paragraph long enough to be captured as the page summary text."
+    meta = frontmatter.build("https://x.com", "T", None, "2026-06-21", 1, body)
+    assert meta["token_estimate"] > 0
+    assert meta["summary"].startswith("This is a meaningful paragraph")
+
+
 def test_writer_versioning_created_unchanged_updated(tmp_path):
     p = tmp_path / "x.md"
     o1 = write(p, "https://x.com", "T", None, "2026-06-21", "hello world")

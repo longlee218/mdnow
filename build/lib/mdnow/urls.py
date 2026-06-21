@@ -50,7 +50,7 @@ def _relpath_for(url: str) -> str:
 def build_path_map(canon_urls: list[str]) -> dict[str, str]:
     """Map each canonical URL to a unique local .md path (stable across runs).
 
-    Collisions and the reserved name `index.md` get a deterministic
+    Collisions and the reserved tree name `index.md` get a deterministic
     sha1 suffix so distinct URLs never overwrite each other.
     """
     mapping: dict[str, str] = {}

@@ -19,7 +19,7 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 # Run from the venv
 .venv/bin/mdnow <url> [-o out/] [--crawl] [--render] [--no-llms] [--max-pages N] [--all]
 
-# Tests (44 tests, ~84% coverage)
+# Tests (54 tests, ~86% coverage)
 .venv/bin/python -m pytest tests/ -q
 .venv/bin/python -m pytest tests/test_linkrewrite.py -q          # one file
 .venv/bin/python -m pytest tests/test_cli.py::test_slug_fallbacks   # one test
@@ -48,6 +48,10 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 **`discover()` is a runtime gate, not an afterthought.** `cli.main` calls `discover()` *before* any crawl/fetch; the crawler is only reached on a `None` return. New input strategies plug in here.
 
 **Crawl is a two-pass over the whole page set** (`crawler.crawl_site`): fetch+extract every page first (with per-page error isolation — one bad page never aborts the run), *then* build the URL→local-path map, *then* rewrite links and write. The two passes are required because link rewriting needs the complete set of crawled URLs before it can know which links resolve locally.
+
+**Provenance: `token_estimate` and `summary` are derived once at the frontmatter choke point** (`frontmatter.build`), not threaded through callers. `outline.py` provides pure helpers: `slugify_heading`, `headings` (code-fence-aware), `summary_of` (extractive, first paragraph), `token_estimate` (chars/4).
+
+**Crawl artifacts** (`artifacts.py` in crawl mode only): emits `llms.txt` (llmstxt.org-shaped index), `llms-full.txt` (full concatenated markdown), and `manifest.json` (machine-readable metadata). These replace the old `tree.py` index-building role — keep artifact emission alongside per-page writes.
 
 **`canonical()` (`urls.py`) is the single source of URL identity** — used by both dedup and the path map, so a URL always resolves identically everywhere. If you touch URL normalization, change it only here.
 

@@ -26,7 +26,7 @@ python3 -m venv .venv
 # Single page → one .md with frontmatter
 mdnow https://example.com/article -o out/
 
-# Whole site → folder of per-page .md + index.md context tree
+# Whole site → folder of per-page .md + llms.txt / llms-full.txt / manifest.json
 mdnow https://example.com --crawl --max-pages 100 -o out/
 mdnow https://example.com --crawl --all -o out/        # no page cap
 
@@ -61,24 +61,32 @@ fetched_date: 2026-06-21
 version: 1
 content_hash: <sha256>
 word_count: 1234
+token_estimate: 247
+summary: "The world as we have created it is a process of our thinking."
 ---
 ```
 
-Crawl mode also writes `index.md` — a hierarchical context tree linking every page, with internal links rewritten to relative local paths (external/uncrawled links left absolute).
+Crawl mode also writes three artifacts to the output directory:
+
+- **`llms.txt`** — llmstxt.org-shaped index: `# <host>` header, `> <summary>` blockquote, then a `## Pages` list of `- [title](relpath): summary`.
+- **`llms-full.txt`** — concatenated full markdown of every crawled page, each section prefixed with `## <title>` and a `Source: <url>` line.
+- **`manifest.json`** — machine-readable index with metadata: `{host, generated_from, page_count, pages:[{source_url, local_path, title, content_hash, token_estimate, word_count, summary, headings:[...]}]}`.
+
+Per-page `.md` files and relative-link rewriting are unchanged.
 
 ## Behavior notes
 
 - **Images** are dropped but their alt-text is kept inline.
-- **Crawl** discovers via `sitemap.xml` first, falls back to a same-domain BFS; respects `robots.txt`, rate-limits, and isolates per-page failures.
+- **Crawl** discovers via `sitemap.xml` first, falls back to a same-domain BFS; respects `robots.txt`, rate-limits, and isolates per-page failures. Artifacts (`llms.txt`, `llms-full.txt`, `manifest.json`) are always emitted in crawl mode.
 - **Cloudflare / anti-bot** bypass via `--render` is best-effort.
 
 ## Develop
 
 ```bash
 .venv/bin/pip install -e ".[dev]"
-.venv/bin/pytest          # 44 tests, ~84% coverage
+.venv/bin/pytest          # 54 tests, ~86% coverage
 ```
 
 ## Architecture
 
-Plan & phase docs: `plans/260621-0714-website-to-markdown-cli/`. Modules (each <200 lines): `cli`, `discovery`/`llmstxt`, `fetcher` (`StaticFetcher`/`CamoufoxFetcher` behind one `Fetcher` interface), `extractor`, `crawler`, `urls`, `linkrewrite`, `tree`, `guards`, `frontmatter`, `writer`.
+Plan & phase docs: `plans/260621-0714-website-to-markdown-cli/`. Modules (each <200 lines): `cli`, `discovery`/`llmstxt`, `fetcher` (`StaticFetcher`/`CamoufoxFetcher` behind one `Fetcher` interface), `extractor`, `crawler`, `urls`, `linkrewrite`, `guards`, `frontmatter`, `outline`, `artifacts`, `writer`.

@@ -14,11 +14,11 @@ from urllib.parse import urlsplit
 from trafilatura.sitemaps import sitemap_search
 from trafilatura.spider import focused_crawler
 
-from . import artifacts, outline
 from .extractor import extract, is_html
 from .fetcher import Fetcher
 from .guards import RateLimiter, RobotsChecker
 from .linkrewrite import rewrite_links
+from .tree import build_index
 from .urls import build_path_map, canonical, same_host
 from .writer import write
 
@@ -91,23 +91,12 @@ def crawl_site(
     page_list = list(pages.values())
     url_map = build_path_map([p.canon for p in page_list])
     today = date.today().isoformat()
-    rendered: list[dict] = []  # final (link-rewritten) bodies — feeds the artifacts
     for p in page_list:
-        rel = url_map[p.canon]
-        body = rewrite_links(p.body, p.source_url, rel, url_map)
-        write(out / rel, p.source_url, p.title, p.published, today, body)
-        rendered.append({"title": p.title, "source_url": p.source_url, "local_path": rel, "body": body})
+        body = rewrite_links(p.body, p.source_url, url_map[p.canon], url_map)
+        write(out / url_map[p.canon], p.source_url, p.title, p.published, today, body)
 
     host = urlsplit(start_url).netloc.lower()
-    start_canon = canonical(start_url)
-    # start page may redirect (/, locale, trailing slash) → fall back to first crawled page
-    start_body = next((r["body"] for r in rendered if canonical(r["source_url"]) == start_canon),
-                      rendered[0]["body"] if rendered else "")
-    site_summary = outline.summary_of(start_body) or f"Documentation crawled from {host}"
-
-    (out / "llms.txt").write_text(artifacts.build_llms_txt(host, site_summary, rendered), encoding="utf-8")
-    (out / "llms-full.txt").write_text(artifacts.build_llms_full(host, site_summary, rendered), encoding="utf-8")
-    (out / "manifest.json").write_text(artifacts.build_manifest(host, start_url, rendered), encoding="utf-8")
+    (out / "index.md").write_text(build_index(host, page_list, url_map), encoding="utf-8")
 
     for u, err in failures:
         echo(f"  skipped {u}: {err}")

@@ -29,7 +29,9 @@ def test_crawl_site_writes_pages_tree_and_rewrites_links(tmp_path, monkeypatch):
     ok, failed = crawler.crawl_site("https://s.com/", tmp_path, 10, False, _FakeFetcher(), lambda m: None)
 
     assert ok == 2 and failed == 0
-    assert (tmp_path / "index.md").exists()
+    assert not (tmp_path / "index.md").exists()           # superseded by llms.txt
+    for f in ("llms.txt", "llms-full.txt", "manifest.json"):
+        assert (tmp_path / f).exists()
     assert (tmp_path / "home.md").exists() and (tmp_path / "about.md").exists()
     # internal crawled link rewritten to a relative local path
     assert "about.md" in (tmp_path / "home.md").read_text()
