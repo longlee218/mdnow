@@ -1,5 +1,12 @@
 # Project Documentation Management
 
+### README is the Source of Truth (MANDATORY)
+- **`README.md` (repo root) is the single source of truth for what the tool does and how to use it.**
+- After ANY change to behavior, CLI flags, features, dependencies, install steps, or module structure, you MUST re-sync `README.md` in the same change set — never leave it stale.
+- Prefer delegating the sync to the `docs` skill or the `docs-manager` agent rather than hand-editing, so structure/links stay consistent.
+- A change is not "done" until the README reflects it. Treat a README drift as a bug.
+- Keep `CLAUDE.md` (operating guidance) in sync too when architecture or commands change.
+
 ### Roadmap & Changelog Maintenance
 - **Project Roadmap** (`./docs/development-roadmap.md`): Living document tracking project phases, milestones, and progress
 - **Project Changelog** (`./docs/project-changelog.md`): Detailed record of all significant changes, features, and fixes
