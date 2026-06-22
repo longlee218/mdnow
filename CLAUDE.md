@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`mdnow` — a personal, fully-local Python CLI that converts a website URL to clean, AI-friendly markdown. Single page or full-site crawl. No API keys, no data egress. Built for one user, low volume (so: no queues, no anti-abuse, no distributed concerns — keep it that way).
+`mdnow` — a personal, fully-local Python CLI that converts a website URL or local/remote file to clean, AI-friendly markdown. Single page, multi-page crawl, or any-file conversion (PDF, Office, images, audio, YouTube). No API keys, no data egress by default. Built for one user, low volume (so: no queues, no anti-abuse, no distributed concerns — keep it that way).
 
 ## Source of truth (MANDATORY)
 
@@ -13,13 +13,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Dev install (editable, into a local venv)
-python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+# Dev install (editable, into a local venv; include [docs] to enable file conversion)
+python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs]"
 
-# Run from the venv
-.venv/bin/mdnow <url> [-o out/] [--crawl] [--render] [--no-llms] [--max-pages N] [--all]
+# Run from the venv (auto-detects input type: URL, local file, or YouTube)
+.venv/bin/mdnow <url|file> [-o out/] [--crawl] [--render] [--no-llms] [--allow-remote] [--max-pages N] [--all]
 
-# Tests (54 tests, ~86% coverage)
+# Tests (72 tests, ~86% coverage)
 .venv/bin/python -m pytest tests/ -q
 .venv/bin/python -m pytest tests/test_linkrewrite.py -q          # one file
 .venv/bin/python -m pytest tests/test_cli.py::test_slug_fallbacks   # one test
@@ -28,8 +28,8 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 # Compile-check (fast syntax gate)
 .venv/bin/python -m compileall -q mdnow
 
-# Global install (pipx). MUST include the [render] extra or --render breaks.
-pipx install "/abs/path/to/MDNow[render]" --force
+# Global install (pipx). MUST include [render] and [docs] extras for full features.
+pipx install "/abs/path/to/MDNow[render,docs]" --force
 $HOME/.local/pipx/venvs/mdnow/bin/python -m camoufox fetch   # one-time ~300MB browser
 ```
 
@@ -37,13 +37,20 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 ## Architecture — the big picture
 
-**Cheapest-path-first funnel.** A URL flows through tiers; each runs only if the prior didn't already yield clean markdown. This is the core design — preserve it.
+**Input-type fork at CLI entry.** `cli.main` branches first:
+- **Local file** → `convert.from_path()` (markitdown), skipping the entire URL funnel.
+- **YouTube URL** → `convert.from_url()` (markitdown transcript, requires `--allow-remote`).
+- **Other URL** → cheapest-path-first website funnel (below).
+
+**Cheapest-path-first funnel** for web URLs. Each tier runs only if the prior didn't yield clean markdown:
 
 1. **Discovery** (`discovery.py` → `llmstxt.py`): probe `/llms.txt`, `/llms-full.txt` (+ variants, + `<url>.md` twin). If a site already publishes clean markdown, return it and **skip everything else**.
-2. **Static** (`fetcher.StaticFetcher` + `extractor.py`): `httpx` fetch → `trafilatura` → markdown. The fast default.
+2. **Static** (`fetcher.StaticFetcher` + `extractor.py`): `httpx` fetch → `trafilatura` → markdown. The fast default. **Content-type fork:** non-HTML → `convert.from_bytes()` (markitdown), with render as fallback if markitdown fails or isn't installed.
 3. **Render** (`fetcher.CamoufoxFetcher`): stealth headless Firefox for JS-heavy / anti-bot pages. Opt-in via `--render`, or **auto-escalated** when static returns blocked/empty/thin content.
 
 **The one abstraction that matters: `Fetcher` (Protocol in `fetcher.py`).** `StaticFetcher` and `CamoufoxFetcher` both implement `fetch(url) -> FetchResult`. Everything downstream (extractor, crawler) is fetcher-agnostic — that's why swapping in render is a one-line change. Don't leak fetch details past this seam.
+
+**File conversion layer** (`convert.py`): lazy markitdown import (mirrors `CamoufoxFetcher` for optional dependencies). Raises `RemoteBlocked` if audio/video/YouTube and `--allow-remote` is off. Returns `Extracted` (reuses existing writer/frontmatter path). No LLM/Azure plugins.
 
 **`discover()` is a runtime gate, not an afterthought.** `cli.main` calls `discover()` *before* any crawl/fetch; the crawler is only reached on a `None` return. New input strategies plug in here.
 
@@ -64,9 +71,9 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 ## Conventions specific to this repo
 
 - Every module stays **< 200 lines**, one responsibility. Many small files > few large ones.
-- New CLI capabilities are **flags on the single command** (`cli.main`), not subcommands — the command is `mdnow <url> [flags]`.
-- `camoufox` is an **optional** dependency (`[render]` extra), imported lazily so static-only users never need it.
-- Founding constraint: **fully local, no API keys.** Any feature needing an LLM/network service must be opt-in behind a flag, never the default.
+- New CLI capabilities are **flags on the single command** (`cli.main`), not subcommands — the command is `mdnow <url|file> [flags]`.
+- `camoufox` and `markitdown` are **optional** dependencies (`[render]` and `[docs]` extras), imported lazily so base-install users never need them.
+- Founding constraint: **fully local, no API keys, no data egress by default.** Audio/video transcription and YouTube egress are opt-in via `--allow-remote`. Never use LLM/Azure client keys.
 
 ## Project workflow
 

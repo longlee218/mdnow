@@ -12,7 +12,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=5"]
-render = ["camoufox>=0.4"]   # stealth browser for the --render tier
+render = ["camoufox>=0.4"]            # stealth browser for the --render tier
+docs = ["markitdown[all]>=0.1"]       # any-file → markdown (PDF, Office, EPub, ...)
 
 [project.scripts]
 mdnow = "mdnow.cli:run"
