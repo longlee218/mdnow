@@ -81,10 +81,11 @@ class CamoufoxFetcher:
             try:
                 from camoufox.sync_api import Camoufox
             except ImportError as exc:
-                raise RuntimeError(
-                    "Camoufox not installed. Run: pip install camoufox "
-                    "&& python -m camoufox fetch"
-                ) from exc
+                from .doctor import missing_extra_message
+                raise RuntimeError(missing_extra_message("render")) from exc
+            # self-heal a Playwright driver crash on SPA page errors (see module)
+            from .playwright_patch import ensure_driver_patched
+            ensure_driver_patched()
             cm = Camoufox(headless=True)
             self._browser = cm.__enter__()  # assign _cm only after launch succeeds
             self._cm = cm
@@ -94,7 +95,15 @@ class CamoufoxFetcher:
         browser = self._ensure()
         page = browser.new_page()
         try:
+            # domcontentloaded first (fast, and avoids a Firefox-driver crash that
+            # `wait_until="load"` triggers on SPAs which throw uncaught JS errors),
+            # then wait for network to settle so client-rendered content is in the
+            # DOM. networkidle is best-effort: a timeout still yields what rendered.
             page.goto(url, wait_until="domcontentloaded", timeout=self._timeout_ms)
+            try:
+                page.wait_for_load_state("networkidle", timeout=self._timeout_ms)
+            except Exception:
+                pass  # persistent connections never idle → use what we have
             html = page.content()
             final = page.url
         except Exception as exc:  # playwright raises its own error types

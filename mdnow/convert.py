@@ -16,9 +16,10 @@ import os
 from pathlib import Path
 from urllib.parse import urlparse
 
+from .doctor import missing_extra_message
 from .extractor import Extracted
 
-_INSTALL_HINT = "markitdown not installed. Run: pip install 'mdnow[docs]'"
+_INSTALL_HINT = missing_extra_message("docs")
 
 # Formats markitdown's AudioConverter transcribes via a cloud speech API.
 # Must stay a superset of that converter's accept-list (incl. .mp4 / video/mp4,
@@ -86,7 +87,8 @@ def _result_to_extracted(result, where: str) -> Extracted:
     md = (result.markdown or "").strip()
     if not md:
         raise ValueError(f"No content extracted from {where}")
-    return Extracted(markdown=md, title=result.title or None, published_date=None)
+    title = str(result.title).strip() if result.title else None
+    return Extracted(markdown=md, title=title, published_date=None)
 
 
 def from_path(path: Path, *, allow_remote: bool = False) -> Extracted:
