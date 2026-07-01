@@ -1,20 +1,108 @@
-[English](README.md) | [Tiếng Việt](README.vi.md)
+<div align="center">
+
+[English](README.md) · [Tiếng Việt](README.vi.md)
+
+<img src="https://raw.githubusercontent.com/longlee218/mdnow/main/assets/banner.png" alt="mdnow — biến mọi thứ thành Markdown" width="640">
 
 # mdnow
 
-**Chuyển đổi bất kỳ trang web hoặc tệp nào thành markdown sạch, thân thiện với AI.**
+### Mọi URL. Mọi website. Mọi tệp. → Markdown sạch, sẵn sàng cho LLM.
 
-Hoàn toàn cục bộ theo mặc định — không cần API key, không dữ liệu rò rỉ. Trang web đơn hoặc crawl toàn bộ trang (→ llms.txt + llms-full.txt), chuyển đổi bất kỳ tệp nào (PDF, Office, ảnh, âm thanh), hoặc máy chủ MCP cho Claude / Cursor. Chọn tầng của bạn: tìm nạp tĩnh nhanh, render JS tinh vi, hoặc kỹ năng Claude gói.
+**100% cục bộ. Không cần API key. Không gửi dữ liệu ra ngoài. Chỉ một câu lệnh.**
 
-[![PyPI version](https://img.shields.io/pypi/v/mdnow.svg)](https://pypi.org/project/mdnow/)
-[![Python versions](https://img.shields.io/pypi/pyversions/mdnow.svg)](https://pypi.org/project/mdnow/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![GitHub Actions](https://github.com/longlee218/mdnow/actions/workflows/publish.yml/badge.svg)](https://github.com/longlee218/mdnow/actions)
+Biến một trang web, cả một website, hay một tệp PDF/Office/âm thanh thành Markdown sạch mà LLM đọc được — mà không phải đẩy nội dung của bạn lên cloud của bên thứ ba.
+
+[![PyPI version](https://img.shields.io/pypi/v/mdnow.svg?color=3b82f6)](https://pypi.org/project/mdnow/)
+[![Python](https://img.shields.io/pypi/pyversions/mdnow.svg?color=3b82f6)](https://pypi.org/project/mdnow/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-3b82f6.svg)](LICENSE)
+[![CI](https://github.com/longlee218/mdnow/actions/workflows/publish.yml/badge.svg)](https://github.com/longlee218/mdnow/actions)
+[![Local-first](https://img.shields.io/badge/data%20egress-none%20by%20default-16a34a.svg)](#-tại-sao-cục-bộ)
+
+```bash
+curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
+```
+
+<sub>macOS / Linux · hoặc <code>uv tool install mdnow</code> · hoặc <code>pipx install mdnow</code></sub>
+
+</div>
+
+---
+
+## Vấn đề
+
+LLM chỉ tốt ngang với dữ liệu bạn đưa vào — nhưng web thì cản trở bạn ở mọi bước:
+
+- **HTML thô toàn là nhiễu.** Menu, quảng cáo, banner cookie và một rừng `<div>` chôn vùi nội dung thật.
+- **Scraper trên cloud khiến bạn trả giá hai lần.** Tính phí theo từng lần gọi *và* gửi nội dung của bạn cho bên thứ ba.
+- **Mỗi định dạng lại cần một công cụ khác nhau.** Một thứ cho trang web, thứ khác cho PDF, thứ khác cho âm thanh, thứ khác nữa cho cả một site tài liệu.
+
+**mdnow gộp tất cả vào một câu lệnh chạy cục bộ** — trang đơn, cả website, và tệp — ra thẳng Markdown sạch, mà mặc định không có gì rời khỏi máy bạn.
+
+```console
+$ mdnow https://example.com/article -o out/
+fetched: example-article.md (v1, 1234 words, ~247 tokens)
+
+$ mdnow https://docs.example.com --crawl --max-pages 50 -o out/
+Crawling https://docs.example.com ...
+Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manifest.json)
+```
+
+<!-- TODO: replace with animated asciinema/vhs cast (assets/demo.svg) before launch -->
+
+---
+
+## ✨ Vì sao chọn mdnow
+
+|  | **mdnow** | API scraper trên cloud | Công cụ cục bộ đơn mục đích |
+|---|:---:|:---:|:---:|
+| Chạy hoàn toàn cục bộ | ✅ | ❌ chỉ cloud | ✅ |
+| Không cần API key / đăng ký | ✅ | ❌ | ✅ |
+| Nội dung của bạn được giữ riêng tư | ✅ không gửi đi | ❌ vốn dĩ phải gửi | ✅ |
+| Trang web → Markdown | ✅ | ✅ | ⚠️ chỉ trích xuất |
+| Crawl cả site → `llms.txt` | ✅ | ⚠️ tùy nơi | ❌ |
+| Render vượt JS / anti-bot | ✅ | ✅ | ❌ |
+| Tệp: PDF, Office, âm thanh, ảnh… | ✅ | ⚠️ tùy nơi | ⚠️ mỗi loại một công cụ |
+| MCP server + skill cho Claude | ✅ | ❌ | ❌ |
+| Chi phí | **Miễn phí (MIT)** | 💲 tính theo lượt | Miễn phí |
+
+> **Điểm khác biệt then chốt:** làm được mọi thứ một cloud scraper làm, nhưng ngay trên máy *của bạn* — và làm được mọi thứ một công cụ trích xuất cục bộ làm, nhưng cho cả web *lẫn* mọi loại tệp, đã được thiết kế sẵn cho LLM.
+
+---
+
+## 🚀 Bạn nhận được gì
+
+| | Khả năng | Ý nghĩa |
+|---|---|---|
+| ⚡ | **Static fetch** | `httpx` + `trafilatura`. Mặc định nhanh, không cần trình duyệt. |
+| 🎭 | **Stealth render** | Camoufox headless Firefox cho site nặng JS / anti-bot — tùy chọn bật, hoặc **tự động nâng cấp** khi nội dung tĩnh quá mỏng. |
+| 🔗 | **Crawl + lập chỉ mục** | Cây cả site → mỗi trang một `.md` + `llms.txt` + `llms-full.txt` + `manifest.json`. |
+| 📄 | **Chuyển đổi mọi tệp** | PDF, Word, PowerPoint, Excel, EPub, ảnh (OCR), âm thanh, YouTube, CSV/JSON/XML, ZIP. |
+| 🧠 | **MCP server** | Cung cấp pipeline dưới dạng công cụ cho Claude Desktop, Claude Code, Cursor và các LLM client khác. |
+| 🔌 | **Skill đóng gói sẵn** | `mdnow --install-skill` cài một skill dùng ngay vào Claude Code. |
+| 🔒 | **Cục bộ trước tiên** | Không key, không telemetry, mặc định không gửi dữ liệu đi. Nội dung là của bạn. |
+| 🧾 | **Kết quả bất biến (idempotent)** | Versioning theo content-hash — chạy lại chỉ tăng `version` khi nội dung thực sự đổi. |
+
+---
+
+## Mục lục
+
+- [Bắt đầu nhanh](#bắt-đầu-nhanh)
+- [Cài đặt](#cài-đặt)
+- [Cách dùng](#cách-dùng)
+- [Dành cho trợ lý AI](#-dành-cho-trợ-lý-ai)
+- [Cơ chế hoạt động](#cơ-chế-hoạt-động)
+- [Định dạng đầu ra](#định-dạng-đầu-ra)
+- [Hành vi](#hành-vi)
+- [Vì sao cục bộ](#-tại-sao-cục-bộ)
+- [Phát triển](#phát-triển)
+- [Giấy phép](#giấy-phép)
+
+---
 
 ## Bắt đầu nhanh
 
 ```bash
-# One-liner (macOS / Linux)
+# Một dòng (macOS / Linux)
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 
 # Hoặc với uv (khuyến nghị)
@@ -27,50 +115,32 @@ pipx install mdnow
 mdnow https://example.com -o out/
 ```
 
-<!-- TODO: replace with animated asciinema/vhs cast (assets/demo.svg) before launch -->
+Không chắc đã cài những gì? Chạy **`mdnow --doctor`** — nó liệt kê từng extra và câu lệnh chính xác để cài phần còn thiếu.
 
-```
-$ mdnow https://example.com/article -o out/
-fetched: example-article.md (v1, from https://example.com/article, 1234 words, ~247 tokens)
-
-$ mdnow https://example.com --crawl --max-pages 50 -o out/
-Crawling https://example.com ...
-Done: 47 page(s) written, 0 failed → out/
-```
-
-## Tính năng
-
-| Tính năng | Mô tả |
-|---------|-------------|
-| ⚡ **Tìm nạp tĩnh** | `httpx` + `trafilatura`: nhanh, không cần render JS |
-| 🎭 **Render tinh vi** | Trình duyệt Firefox không đầu Camoufox cho các trang web JS-nặng / chống bot (tùy chọn hoặc tự động leo thang) |
-| 🔗 **Crawl + index** | Cây toàn bộ trang: `.md` mỗi trang + `llms.txt` + `llms-full.txt` + `manifest.json` |
-| 📄 **Chuyển đổi bất kỳ tệp nào** | PDF, Office, EPub, ảnh (OCR), âm thanh, YouTube, CSV/JSON/XML, ZIP |
-| 🧠 **Máy chủ MCP** | Hiển thị công cụ cho Claude Desktop, Claude Code, Cursor và các máy khách LLM khác |
-| 🔌 **Kỹ năng gói** | `mdnow --install-skill` → cài đặt vào `~/.claude/skills/mdnow` |
+---
 
 ## Cài đặt
 
-### 1. Cài đặt cơ bản (tất cả người dùng)
+### 1. Cài bản nền (cho mọi người)
 
 Chọn một cách:
 
-**Qua shell one-liner** (macOS / Linux):
+**Một dòng lệnh shell** (macOS / Linux):
 ```bash
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 ```
 
-**Qua uv** (khuyến nghị, đa nền tảng):
+**uv** (khuyến nghị, đa nền tảng):
 ```bash
 uv tool install mdnow
 ```
 
-**Qua pipx** (chỉ Python, không cần uv):
+**pipx** (chỉ Python, không cần uv):
 ```bash
 pipx install mdnow
 ```
 
-**Từ mã nguồn** (những người đóng góp):
+**Từ mã nguồn** (cho người đóng góp):
 ```bash
 git clone https://github.com/longlee218/mdnow.git
 cd mdnow
@@ -78,191 +148,135 @@ python3 -m venv .venv
 .venv/bin/pip install -e .
 ```
 
-### 2. Extras (tùy chọn, cài đặt cùng nhau)
+### 2. Extras (tùy chọn)
 
-Cơ sở `mdnow` tìm nạp **HTML tĩnh chỉ** và chuyển đổi **tệp cục bộ** qua logic gói nhẹ. Chọn vào các phụ thuộc nặng hơn khi cần:
+Bản nền `mdnow` lấy **HTML tĩnh** và chuyển đổi **tệp cục bộ** bằng logic nhẹ. Chỉ bật thêm khả năng nặng hơn khi bạn cần:
 
-**`[render]`** — Trình duyệt không đầu tinh vi (Camoufox Firefox, tải xuống một lần ~300MB):
+| Extra | Bổ sung | Cài đặt |
+|-------|---------|---------|
+| `[render]` | Trình duyệt stealth headless (Camoufox, tải ~300MB một lần) | `uv tool install "mdnow[render]"` rồi `mdnow --fetch-browser` |
+| `[docs]` | Chuyển đổi mọi tệp (PDF, Office, ảnh/OCR, âm thanh, YouTube) | `uv tool install "mdnow[docs]"` |
+| `[mcp]` | Chế độ MCP server cho Claude / Cursor | `uv tool install "mdnow[mcp]"` |
+
+Với trình cài đặt shell, truyền cờ thay thế:
 ```bash
-# Shell one-liner: thêm cờ --render
-curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render
-
-# uv / pipx
-uv tool install "mdnow[render]"
-pipx install "mdnow[render]"
-
-# Sau đó tải xuống trình duyệt (một lần):
-mdnow --fetch-browser
-```
-
-**`[docs]`** — Chuyển đổi bất kỳ tệp nào: PDF, Word, PowerPoint, Excel, EPub, ảnh (OCR), âm thanh, YouTube (markitdown + ML deps nặng):
-```bash
-# Shell: --docs
-curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --docs
-
-# uv / pipx
-uv tool install "mdnow[docs]"
-pipx install "mdnow[docs]"
-```
-
-**`[mcp]`** — Chế độ máy chủ MCP cho Claude / Cursor:
-```bash
-# Shell: --mcp
-curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --mcp
-
-# uv / pipx
-uv tool install "mdnow[mcp]"
-pipx install "mdnow[mcp]"
-```
-
-**`--all`** — Tất cả extras cùng một lúc:
-```bash
+curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render --docs --mcp
+# hoặc tất cả cùng lúc:
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
 ```
 
+`pipx` cũng dùng tương tự: `pipx install "mdnow[render,docs,mcp]"`.
+
 ### Windows
 
-Người dùng Windows: sử dụng **PowerShell** (không có shell one-liner). Cài đặt uv hoặc pipx trước, sau đó:
+Dùng **PowerShell** (không có một-dòng-lệnh shell). Cài uv hoặc pipx trước, rồi:
 
 ```powershell
 uv tool install "mdnow[render,docs,mcp]"
+mdnow --fetch-browser   # nếu dùng [render]
 ```
 
-Để tải xuống trình duyệt Camoufox trên Windows:
-```powershell
-mdnow --fetch-browser
-```
+---
 
-## Sử dụng
+## Cách dùng
 
-### Trang web: trang đơn
-
+### Website: trang đơn
 ```bash
 mdnow https://example.com/article -o out/
 ```
 
-### Trang web: crawl toàn bộ trang
-
+### Website: crawl cả site
 ```bash
-# Max 100 trang (mặc định)
-mdnow https://example.com --crawl -o out/
+mdnow https://example.com --crawl -o out/                 # tối đa 100 trang (mặc định)
+mdnow https://example.com --crawl --all -o out/           # không giới hạn
+mdnow https://example.com --crawl --max-pages 50 -o out/  # giới hạn tùy chỉnh
+```
+Đầu ra: mỗi trang một `.md` + `llms.txt` + `llms-full.txt` + `manifest.json`.
 
-# Không có giới hạn trang
-mdnow https://example.com --crawl --all -o out/
-
-# Giới hạn tùy chỉnh
-mdnow https://example.com --crawl --max-pages 50 -o out/
+### Website: site nặng JS hoặc anti-bot
+```bash
+mdnow https://example.com/spa --render -o out/   # ép dùng trình duyệt stealth (cần [render])
+mdnow https://example.com --crawl -o out/        # tự động nâng cấp render cho trang mỏng/rỗng
 ```
 
-Đầu ra: các tệp `.md` mỗi trang + `llms.txt` + `llms-full.txt` + `manifest.json`.
-
-### Trang web: các trang JS-nặng hoặc chống bot
-
-```bash
-# Bắt buộc trình duyệt tinh vi (yêu cầu extra [render])
-mdnow https://example.com/spa --render -o out/
-
-# Tự động leo thang: nếu HTML tĩnh mỏng hoặc rỗng, render được kích hoạt tự động
-mdnow https://example.com --crawl -o out/
-```
-
-### Tệp: PDF cục bộ, Office, ảnh, âm thanh, v.v.
-
+### Tệp: PDF, Office, ảnh, âm thanh cục bộ, …
 ```bash
 mdnow ./report.pdf -o out/
 mdnow ./slides.pptx -o out/
-mdnow ./document.docx -o out/
-mdnow ./screenshot.png -o out/        # OCR
-mdnow ./talk.m4a -o out/              # cloud transcription (yêu cầu --allow-remote + [docs] extra)
+mdnow ./screenshot.png -o out/         # OCR
+mdnow ./talk.m4a --allow-remote -o out/ # phiên âm âm thanh (cần [docs] + --allow-remote)
 ```
 
 ### Tệp: URL từ xa
-
 ```bash
 mdnow https://example.com/paper.pdf -o out/
-mdnow https://youtu.be/watch?v=abc123 --allow-remote -o out/  # YouTube transcript (cloud egress)
+mdnow "https://youtu.be/watch?v=abc123" --allow-remote -o out/   # transcript YouTube (gửi ra cloud)
 ```
 
-### Bỏ qua khám phá, bắt buộc tìm nạp/crawl
-
+### Bỏ qua discovery, ép fetch/crawl
 ```bash
-# Thông thường: nếu /llms.txt tồn tại trên trang web, hãy sử dụng nó trực tiếp và bỏ qua tìm nạp
-# Sử dụng --no-llms để bắt buộc tìm nạp/crawl thay thế
+# Mặc định, nếu site có công bố /llms.txt, mdnow dùng luôn. Ép lấy mới bằng:
 mdnow https://example.com --crawl --no-llms -o out/
 ```
 
-### Các cờ
+### Các cờ (flags)
 
 | Cờ | Ý nghĩa |
 |------|---------|
 | `-o, --out` | Thư mục đầu ra (mặc định `.`) |
-| `--crawl` | Crawl toàn bộ trang vào một cây (chỉ trang web) |
+| `--crawl` | Crawl cả site thành cây (chỉ website) |
 | `--max-pages N` | Số trang tối đa để crawl (mặc định 100) |
 | `--all` | Crawl tất cả các trang (bỏ qua `--max-pages`) |
-| `--render` | Sử dụng trình duyệt tinh vi Camoufox (các trang JS/chống bot); yêu cầu extra `[render]` |
-| `--no-llms` | Bỏ qua khám phá llms.txt; bắt buộc tìm nạp/crawl (chỉ trang web) |
-| `--allow-remote` | Cho phép API đám mây: âm thanh/video transcription, YouTube (egress dữ liệu tùy chọn) |
-| `--doctor` | Báo cáo extras được cài đặt/bị thiếu (và cách khắc phục) rồi thoát |
-| `--fetch-browser` | Tải xuống trình duyệt Camoufox cho `--render` rồi thoát |
-| `--install-skill` | Cài đặt kỹ năng Claude Code gói vào `~/.claude/skills/mdnow` |
-| `--mcp` | Chạy như một máy chủ MCP (stdio transport) cho Claude / Cursor |
+| `--render` | Dùng trình duyệt stealth Camoufox (site JS/anti-bot); cần `[render]` |
+| `--no-llms` | Bỏ qua discovery `llms.txt`; ép fetch/crawl |
+| `--allow-remote` | Cho phép API cloud: phiên âm âm thanh/video, YouTube (gửi dữ liệu ra, tùy chọn) |
+| `--doctor` | Báo cáo extras đã cài/còn thiếu (kèm cách khắc phục) rồi thoát |
+| `--fetch-browser` | Tải trình duyệt Camoufox cho `--render` rồi thoát |
+| `--install-skill` | Cài skill Claude Code đóng gói sẵn vào `~/.claude/skills/mdnow` |
+| `--mcp` | Chạy dưới dạng MCP server (stdio transport) cho Claude / Cursor |
 
-## Cho những trợ lý AI
+---
 
-### Kỹ năng Claude Code
+## 🧠 Dành cho trợ lý AI
 
-Cài đặt kỹ năng Claude Code gói:
-
+### Skill cho Claude Code
 ```bash
-mdnow --install-skill
+mdnow --install-skill                                   # → ~/.claude/skills/mdnow
+mdnow --install-skill --skill-dir ~/.claude/skills/foo  # vị trí tùy chỉnh
+mdnow --install-skill --force                           # ghi đè bản cũ
 ```
+Skill này giúp Claude Code lấy một URL, crawl một site, hoặc chuyển đổi một tệp — ngay trong trình soạn thảo.
 
-Kỹ năng này hiển thị đường ống chuyển đổi mdnow cho Claude Code: tìm nạp URL, crawl trang, hoặc chuyển đổi tệp — tất cả từ trình chỉnh sửa Claude Code.
-
-Để chỉ định điểm đến tùy chỉnh:
-
-```bash
-mdnow --install-skill --skill-dir ~/.claude/skills/my-mdnow
-mdnow --install-skill --force    # ghi đè nếu đã được cài đặt
-```
-
-### Máy chủ MCP
-
-Hiển thị mdnow như một máy chủ [MCP (Model Context Protocol)](https://modelcontextprotocol.io) cho Claude Desktop, Claude Code hoặc Cursor:
-
+### MCP server
+Cung cấp mdnow dưới dạng [MCP](https://modelcontextprotocol.io) server cho Claude Desktop, Claude Code, hoặc Cursor:
 ```bash
 mdnow --mcp
 ```
-
 **Cấu hình Claude Desktop** (`~/.claude/claude_desktop_config.json`):
-
 ```json
 {
   "mcpServers": {
-    "mdnow": {
-      "command": "/path/to/mdnow",
-      "args": ["--mcp"]
-    }
+    "mdnow": { "command": "/path/to/mdnow", "args": ["--mcp"] }
   }
 }
 ```
+**Các công cụ được cung cấp:** `mdnow_fetch_url` · `mdnow_crawl_site` · `mdnow_convert_file`.
 
-**Công cụ được hiển thị:**
-- `mdnow_fetch_url`: Tìm nạp một URL → markdown với metadata
-- `mdnow_crawl_site`: Crawl một trang → tóm tắt các chuyển đổi mỗi trang
-- `mdnow_convert_file`: Chuyển đổi tệp cục bộ hoặc từ xa → markdown
+---
 
-## Nó hoạt động như thế nào
+## Cơ chế hoạt động
 
-Một đường ống chi phí rẻ nhất-đầu tiên — mỗi tầng chỉ chạy nếu tầng trước không đã tạo ra markdown sạch:
+Một **phễu ưu tiên đường rẻ nhất trước** — mỗi tầng chỉ chạy nếu tầng trước chưa tạo ra Markdown sạch:
 
-1. **Khám phá** — nếu trang web xuất bản `/llms.txt`, `/llms-full.txt` (hoặc biến thể, hoặc sinh đôi `<url>.md`), hãy sử dụng nó trực tiếp và bỏ qua mọi thứ khác.
-2. **Tìm nạp tĩnh** — trích xuất `httpx` + `trafilatura`. Mặc định nhanh; không cần trình duyệt.
-3. **Render** — Trình duyệt Firefox không đầu Camoufox cho các trang JS-nặng / chống bot. Tùy chọn qua `--render`, hoặc tự động leo thang khi tìm nạp tĩnh trả về nội dung rỗng/mỏng.
+1. **Discovery** — nếu site có công bố `/llms.txt`, `/llms-full.txt` (hoặc biến thể, hoặc bản `<url>.md` song sinh), dùng luôn và bỏ qua mọi thứ còn lại.
+2. **Static fetch** — `httpx` + `trafilatura`. Mặc định nhanh; không cần trình duyệt.
+3. **Render** — trình duyệt stealth Camoufox cho site nặng JS / anti-bot. Bật qua `--render`, hoặc tự động nâng cấp khi static trả về nội dung rỗng/mỏng.
 
-## Đầu ra
+---
 
-Mỗi trang được viết với lưỡng chữ YAML phía trước và **versioning** dựa trên hash nội dung — chạy lại chỉ bumps `version` khi nội dung thực sự thay đổi:
+## Định dạng đầu ra
+
+Mỗi trang được ghi kèm YAML frontmatter và **versioning** theo content-hash — chạy lại chỉ tăng `version` khi nội dung thực sự đổi:
 
 ```yaml
 ---
@@ -278,49 +292,53 @@ summary: "The world as we have created it is a process of our thinking."
 ---
 ```
 
-Chế độ crawl cũng viết ba hiện tượng:
+Chế độ crawl còn ghi thêm ba tệp:
 
-- **`llms.txt`** — chỉ mục theo [llmstxt.org](https://llmstxt.org): tiêu đề `# <host>`, blockquote `> <summary>`, `## Pages` với danh sách `- [title](path): summary`.
-- **`llms-full.txt`** — markdown nối tiếp từ mỗi trang crawled, mỗi cái được tiền tố với `## <title>` và `Source: <url>`.
-- **`manifest.json`** — Metadata có thể đọc máy: máy chủ lưu trữ, số trang và hashes mỗi trang, tóm tắt, số lượng token.
+- **`llms.txt`** — chỉ mục theo chuẩn [llmstxt.org](https://llmstxt.org): tiêu đề `# <host>`, blockquote `> <summary>`, và danh sách `## Pages` gồm `- [title](path): summary`.
+- **`llms-full.txt`** — toàn bộ Markdown của mọi trang đã crawl, mỗi trang có tiền tố `## <title>` + `Source: <url>`.
+- **`manifest.json`** — metadata dạng máy đọc được: host, số trang, hash/summary/số token của từng trang.
+
+---
 
 ## Hành vi
 
-- **Ảnh** được loại bỏ nhưng văn bản thay thế được bảo tồn (HTML); hoặc được trích xuất qua OCR (tệp ảnh, `[docs]` extra).
-- **Tệp** (cục bộ hoặc từ xa không phải HTML) được phát hiện tự động và chuyển đổi qua markitdown. Hỗ trợ: PDF, Word, PowerPoint, Excel, EPub, ảnh, CSV/JSON/XML, lưu trữ ZIP.
-- **Âm thanh/video** và **YouTube** yêu cầu `--allow-remote` (API transcription đám mây). Nếu không, chúng lỗi rõ ràng.
-- **`--crawl`** không hợp lệ cho đầu vào tệp (chỉ tệp đơn); lỗi rõ ràng.
-- **Hoàn toàn cục bộ theo mặc định** — chỉ egress âm thanh/video/YouTube là tùy chọn qua `--allow-remote`. Không có khóa LLM hoặc telemetry.
-- **Crawl** phát hiện qua `sitemap.xml` trước, quay trở lại BFS; tôn trọng `robots.txt`, giới hạn tốc độ và cô lập các lỗi mỗi trang.
-- **SPAs được render JS** (tài liệu React/Angular, v.v.) tự động leo thang ở chế độ crawl: nếu khám phá tĩnh không tìm thấy liên kết, trang bắt đầu được render và các trang mỏng tự động render. Yêu cầu `[render]` extra + `mdnow --fetch-browser`.
-- **Cloudflare / chống bot** bypass qua `--render` là nỗ lực tốt nhất.
+- **Ảnh** — bị loại bỏ nhưng giữ lại alt-text (HTML); hoặc trích bằng OCR (tệp ảnh, `[docs]`).
+- **Tệp** — non-HTML cục bộ/từ xa được tự nhận diện và chuyển đổi qua markitdown (PDF, Word, PowerPoint, Excel, EPub, ảnh, CSV/JSON/XML, ZIP).
+- **Âm thanh/video & YouTube** — cần `--allow-remote` (phiên âm qua cloud). Không có nó, sẽ báo lỗi rõ ràng.
+- **`--crawl`** — không hợp lệ cho đầu vào là tệp (chỉ một tệp); báo lỗi rõ ràng.
+- **Crawl** — tìm qua `sitemap.xml` trước, quay về BFS; tôn trọng `robots.txt`, giới hạn tốc độ, cô lập lỗi từng trang.
+- **SPA render bằng JS** (tài liệu React/Angular, v.v.) — tự nâng cấp trong chế độ crawl: nếu discovery tĩnh không thấy link, trang gốc được render; trang mỏng tự render. Cần `[render]` + `mdnow --fetch-browser`.
+- **Cloudflare / anti-bot** — vượt qua bằng `--render` là nỗ lực tốt nhất có thể (best-effort).
 
-## Tại sao cục bộ?
+---
 
-**mdnow hoàn toàn cục bộ theo mặc định** — không API key, không egress dữ liệu, không telemetry. Đây là một ràng buộc sáng lập.
+## 🔒 Tại sao cục bộ?
 
-- Nội dung trang web của bạn không bao giờ rời khỏi máy của bạn (ngoại trừ âm thanh/video/YouTube, đó là tùy chọn qua `--allow-remote`).
-- Không phụ thuộc mạng sau lần cài đặt đầu tiên (ngoại trừ tìm nạp trang web thực tế, tất nhiên).
-- Không khóa vendor bên thứ ba hoặc giới hạn tốc độ API.
-- Không telemetry — không ping về nhà, không phân tích.
-- Minh bạch: đọc mã nguồn; không có cuộc gọi đám mây ẩn.
+**Hoàn toàn cục bộ theo mặc định là một ràng buộc nền tảng, không phải một cờ tính năng.**
 
-Sử dụng mdnow như một CLI, trong một tập lệnh hoặc nhúng trong IDE LLM của bạn — nó là của bạn để kiểm soát.
+- Nội dung của bạn **không bao giờ rời khỏi máy** — ngoại lệ duy nhất là âm thanh/video/YouTube, và đó là tùy chọn qua `--allow-remote`.
+- **Không API key, không đăng ký, không giới hạn tốc độ, không khóa chặt vào nhà cung cấp.**
+- **Zero telemetry** — không gửi tín hiệu về nhà, không analytics. Đọc mã nguồn; không có lời gọi cloud ẩn.
+- Dùng như một CLI, trong script, hay nhúng vào LLM IDE của bạn — bạn toàn quyền kiểm soát.
 
-## Develop
+---
+
+## Phát triển
 
 ```bash
 git clone https://github.com/longlee218/mdnow.git
 cd mdnow
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev,docs,mcp]"
-.venv/bin/pytest          # 95 tests, ~88% coverage
+.venv/bin/pytest          # 113 test, ~88% coverage
 ```
 
-## Kiến trúc
+**Kiến trúc** — mỗi module dưới 200 dòng, một trách nhiệm: `cli`, `discovery`/`llmstxt`, `fetcher` (`StaticFetcher`/`CamoufoxFetcher` sau một interface `Fetcher` duy nhất), `playwright_patch` (bản vá tự phục hồi driver render), `extractor`, `convert` (bọc markitdown), `crawler`, `urls`, `linkrewrite`, `guards`, `frontmatter`, `outline`, `artifacts`, `writer`, `commands`, `doctor`, `mcp_server`.
 
-Kế hoạch & tài liệu giai đoạn: `plans/260621-0714-website-to-markdown-cli/`. Các mô-đun (mỗi <200 dòng): `cli`, `discovery`/`llmstxt`, `fetcher` (`StaticFetcher`/`CamoufoxFetcher` phía sau một giao diện `Fetcher`), `playwright_patch` (bản sửa tự chữa render-driver), `extractor`, `convert` (wrapper markitdown), `crawler`, `urls`, `linkrewrite`, `guards`, `frontmatter`, `outline`, `artifacts`, `writer`, `mcp_server`.
+---
 
 ## Giấy phép
 
-MIT
+[MIT](LICENSE) © Long Le. Hoan nghênh đóng góp — mở issue hoặc PR.
+
+<div align="center"><sub>Dành cho những người đưa web vào LLM và muốn giữ dữ liệu của mình cho riêng mình.</sub></div>
