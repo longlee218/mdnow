@@ -110,7 +110,9 @@ else
 fi
 
 echo "==> Installing $pkg from GitHub ($GIT_URL) ..."
-uv tool install "$pkg @ $GIT_URL"
+# --force makes re-running the installer idempotent (upgrade / overwrite an
+# existing mdnow install) instead of erroring with "Executable already exists".
+uv tool install --force "$pkg @ $GIT_URL"
 
 # --- 2b. Ensure uv's tool-bin dir is on PATH so the mdnow calls below work ---
 # (Needed when uv was already installed and its bin dir isn't on PATH yet.)
