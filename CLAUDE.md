@@ -40,11 +40,11 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs,mcp]"
 # Compile-check (fast syntax gate)
 .venv/bin/python -m compileall -q mdnow
 
-# Global install via uv (recommended, cross-platform)
-uv tool install "mdnow[render,docs,mcp]"
+# Global install via uv from GitHub (recommended; distributed via git, NOT PyPI)
+uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
 
 # Global install via pipx (Python-only)
-pipx install "mdnow[render,docs,mcp]"
+pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
 
 # One-liner install (macOS / Linux)
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
@@ -101,17 +101,19 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 ## Distribution & public surfaces
 
-**PyPI + install.sh model:** Package lives on PyPI as `mdnow`. Public users install via:
+**Git-based distribution (NOT PyPI):** the package is installed straight from the GitHub repo — there is no PyPI release and no publish workflow. Install spec is the PEP 508 direct reference `mdnow[extras] @ git+https://github.com/longlee218/mdnow`. Public users install via:
 1. **Shell one-liner** (macOS/Linux): `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh [--render] [--docs] [--mcp] [--all] [--skill]`
-   - `install.sh` ensures `uv` is installed, then `uv tool install "mdnow[extras]"`, downloads browser if `--render`, installs skill if `--skill`.
-   - Branch in URL header is `main` (kept in sync with releases).
-2. **uv tool install** (recommended, cross-platform): `uv tool install "mdnow[render,docs,mcp]"`
-3. **pipx** (fallback): `pipx install mdnow`
-4. **Windows:** PowerShell users follow the `uv tool install` path (no dedicated .ps1).
+   - `install.sh` ensures `uv` is installed, then `uv tool install "mdnow[extras] @ git+<repo>"`, downloads browser if `--render`, installs skill if `--skill`.
+   - Raw-URL branch is `main`.
+2. **uv** (recommended, cross-platform): `uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`
+3. **pipx**: `pipx install "git+https://github.com/longlee218/mdnow"`
+4. **Windows:** PowerShell users follow the `uv tool install "... @ git+<repo>"` path (no dedicated .ps1).
+
+`pyproject.toml` still carries valid package metadata (name, classifiers, `[project.urls]`) so the git install builds cleanly, but there is no CI/publish workflow and PyPI is intentionally not used.
 
 **Skill bundling:** `mdnow/skill/` directory contains the Claude Code skill. `mdnow --install-skill` (via `commands.py:install_skill`) copies it to `~/.claude/skills/mdnow/` (or `--skill-dir` if provided). Bundled in `pyproject.toml` as `mdnow = ["skill/**/*"]` package data.
 
-**Documentation mirrors:** README.md (English, canonical) renders on PyPI as the project description. README.vi.md is a full Vietnamese translation kept in sync — update both in the same change set. Add this rule to future edits: "README.md is English canonical; README.vi.md is a synced Vietnamese mirror — update both in the same change."
+**Documentation mirrors:** README.md is English canonical; README.vi.md is a synced Vietnamese mirror — update both in the same change.
 
 ## Project workflow
 

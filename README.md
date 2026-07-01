@@ -12,17 +12,16 @@
 
 Turn a web page, a whole website, or a PDF/Office/audio file into clean Markdown your LLM can actually read — without shipping your content to someone else's cloud.
 
-[![PyPI version](https://img.shields.io/pypi/v/mdnow.svg?color=3b82f6)](https://pypi.org/project/mdnow/)
-[![Python](https://img.shields.io/pypi/pyversions/mdnow.svg?color=3b82f6)](https://pypi.org/project/mdnow/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3b82f6.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-3b82f6.svg)](LICENSE)
-[![CI](https://github.com/longlee218/mdnow/actions/workflows/publish.yml/badge.svg)](https://github.com/longlee218/mdnow/actions)
+[![Install: git](https://img.shields.io/badge/install-via%20git-6f42c1.svg)](#install)
 [![Local-first](https://img.shields.io/badge/data%20egress-none%20by%20default-16a34a.svg)](#-why-mdnow)
 
 ```bash
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 ```
 
-<sub>macOS / Linux · or <code>uv tool install mdnow</code> · or <code>pipx install mdnow</code></sub>
+<sub>macOS / Linux · or <code>uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"</code></sub>
 
 </div>
 
@@ -106,14 +105,16 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 
 # Or with uv (recommended)
-uv tool install mdnow
+uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
 
 # Or with pipx
-pipx install mdnow
+pipx install "git+https://github.com/longlee218/mdnow"
 
 # Then:
 mdnow https://example.com -o out/
 ```
+
+> **Distributed via git, not PyPI** — install straight from this repo. No registry, no publish step.
 
 Not sure what's installed? Run **`mdnow --doctor`** — it reports every extra and the exact command to fix what's missing.
 
@@ -132,12 +133,12 @@ curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | 
 
 **uv** (recommended, cross-platform):
 ```bash
-uv tool install mdnow
+uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
 ```
 
 **pipx** (Python-only, no uv required):
 ```bash
-pipx install mdnow
+pipx install "git+https://github.com/longlee218/mdnow"
 ```
 
 **From source** (contributors):
@@ -154,9 +155,9 @@ Base `mdnow` fetches **static HTML** and converts **local files** with lightweig
 
 | Extra | Adds | Install |
 |-------|------|---------|
-| `[render]` | Stealth headless browser (Camoufox, ~300MB one-time) | `uv tool install "mdnow[render]"` then `mdnow --fetch-browser` |
-| `[docs]` | Any-file conversion (PDF, Office, images/OCR, audio, YouTube) | `uv tool install "mdnow[docs]"` |
-| `[mcp]` | MCP server mode for Claude / Cursor | `uv tool install "mdnow[mcp]"` |
+| `[render]` | Stealth headless browser (Camoufox, ~300MB one-time) | `uv tool install "mdnow[render] @ git+https://github.com/longlee218/mdnow"` then `mdnow --fetch-browser` |
+| `[docs]` | Any-file conversion (PDF, Office, images/OCR, audio, YouTube) | `uv tool install "mdnow[docs] @ git+https://github.com/longlee218/mdnow"` |
+| `[mcp]` | MCP server mode for Claude / Cursor | `uv tool install "mdnow[mcp] @ git+https://github.com/longlee218/mdnow"` |
 
 With the shell installer, pass flags instead:
 ```bash
@@ -165,14 +166,14 @@ curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | 
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
 ```
 
-`pipx` works the same way: `pipx install "mdnow[render,docs,mcp]"`.
+`pipx` works the same way: `pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`.
 
 ### Windows
 
 Use **PowerShell** (no shell one-liner). Install uv or pipx first, then:
 
 ```powershell
-uv tool install "mdnow[render,docs,mcp]"
+uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
 mdnow --fetch-browser   # if using [render]
 ```
 

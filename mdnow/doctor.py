@@ -10,18 +10,19 @@ from dataclasses import dataclass
 import importlib.util
 import sys
 
-# feature name -> (extra name, one-line pip install hint)
-_EXTRAS = {
-    "render": ("render", "pip install 'mdnow[render]'"),
-    "docs": ("docs", "pip install 'mdnow[docs]'"),
-    "mcp": ("mcp", "pip install 'mdnow[mcp]'"),
-}
+# mdnow is distributed via git (not PyPI), so install hints use the direct-ref spec.
+_GIT_URL = "git+https://github.com/longlee218/mdnow"
+_EXTRAS = {"render": "render", "docs": "docs", "mcp": "mcp"}
+
+
+def _install_hint(extra: str) -> str:
+    return f'uv tool install "mdnow[{extra}] @ {_GIT_URL}"'
 
 
 def missing_extra_message(feature: str) -> str:
     """Shared "feature X needs extra Y" hint, reused by mcp/render/docs call sites."""
-    extra, hint = _EXTRAS[feature]
-    return f"{feature} requires the [{extra}] extra. Run: {hint}"
+    extra = _EXTRAS[feature]
+    return f"{feature} requires the [{extra}] extra. Run: {_install_hint(extra)}"
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,7 @@ def _extra_installed(module: str) -> bool:
 def _check_render_browser() -> Check:
     if not _extra_installed("camoufox"):
         return Check("render browser", False, "not checked ([render] not installed)",
-                      fix="pip install 'mdnow[render]'")
+                      fix=_install_hint("render"))
     try:
         import camoufox.pkgman as pm
 
@@ -52,10 +53,10 @@ def _check_render_browser() -> Check:
 
 
 def _check_extra(feature: str, module: str) -> Check:
-    extra, hint = _EXTRAS[feature]
+    extra = _EXTRAS[feature]
     if _extra_installed(module):
         return Check(f"[{extra}] extra", True, "installed")
-    return Check(f"[{extra}] extra", False, "not installed", fix=hint)
+    return Check(f"[{extra}] extra", False, "not installed", fix=_install_hint(extra))
 
 
 def _check_skill() -> Check:

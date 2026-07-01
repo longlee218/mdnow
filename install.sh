@@ -5,8 +5,8 @@
 #
 # What it does:
 #   1. Ensures `uv` is installed (via the official astral.sh installer if missing).
-#   2. Runs `uv tool install "mdnow[<extras>]"` from PyPI for an isolated, PATH-ready
-#      install. If mdnow isn't on PyPI yet, it falls back to installing from GitHub.
+#   2. Runs `uv tool install "mdnow[<extras>] @ git+<repo>"` from GitHub for an
+#      isolated, PATH-ready install (mdnow is distributed via git, not PyPI).
 #   3. If --render was selected, runs `mdnow --fetch-browser` (one-time ~300MB download).
 #   4. If --skill was passed, runs `mdnow --install-skill`.
 #   5. Prints next steps, including a PATH export line if needed.
@@ -17,7 +17,6 @@
 #   --mcp           include the [mcp] extra (MCP server mode)
 #   --all           shorthand for --render --docs --mcp
 #   --skill         install the bundled Claude Code skill after install
-#   --git           install from the GitHub repo instead of PyPI (skip PyPI)
 #   -h, --help      show this help and exit
 #
 # Security-conscious alternative (don't pipe to sh):
@@ -30,20 +29,18 @@ want_render=0
 want_docs=0
 want_mcp=0
 want_skill=0
-want_git=0
 
 GIT_URL="git+https://github.com/longlee218/mdnow"
 
 usage() {
     cat <<'EOF'
-Usage: install.sh [--render] [--docs] [--mcp] [--all] [--skill] [--git] [-h|--help]
+Usage: install.sh [--render] [--docs] [--mcp] [--all] [--skill] [-h|--help]
 
   --render   install the [render] extra (Camoufox stealth browser, ~300MB one-time download)
   --docs     install the [docs] extra (markitdown file conversion: PDF, Office, images, audio)
   --mcp      install the [mcp] extra (MCP server mode for AI assistants)
   --all      shorthand for --render --docs --mcp
   --skill    install the bundled Claude Code skill to ~/.claude/skills/mdnow
-  --git      install from the GitHub repo instead of PyPI (skip PyPI)
   -h, --help show this help and exit
 EOF
 }
@@ -55,7 +52,6 @@ for arg in "$@"; do
         --mcp) want_mcp=1 ;;
         --all) want_render=1; want_docs=1; want_mcp=1 ;;
         --skill) want_skill=1 ;;
-        --git) want_git=1 ;;
         -h|--help) usage; exit 0 ;;
         *)
             echo "Unknown option: $arg" >&2
@@ -113,18 +109,8 @@ else
     pkg="mdnow"
 fi
 
-if [ "$want_git" = 1 ]; then
-    echo "==> Installing $pkg from GitHub ($GIT_URL) ..."
-    uv tool install "$pkg @ $GIT_URL"
-else
-    echo "==> Installing $pkg from PyPI ..."
-    # mdnow may not be published to PyPI yet; if the registry install fails,
-    # fall back to installing straight from the (public) GitHub repo.
-    if ! uv tool install "$pkg"; then
-        echo "==> $pkg not available on PyPI; falling back to GitHub ($GIT_URL) ..." >&2
-        uv tool install "$pkg @ $GIT_URL"
-    fi
-fi
+echo "==> Installing $pkg from GitHub ($GIT_URL) ..."
+uv tool install "$pkg @ $GIT_URL"
 
 # --- 2b. Ensure uv's tool-bin dir is on PATH so the mdnow calls below work ---
 # (Needed when uv was already installed and its bin dir isn't on PATH yet.)

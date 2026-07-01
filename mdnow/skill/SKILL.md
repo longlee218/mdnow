@@ -44,7 +44,7 @@ clean markdown:
    (you only need to read/summarize it); the user's project or a named path if it's a
    deliverable they want kept. Default is the current directory.
 4. **Run it** with Bash: `mdnow <input> -o <dir> [flags]`. Requires `mdnow` on PATH
-   (`pipx install mdnow` or `pip install mdnow`).
+   (`uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"`).
 5. **Read the output.** `Read` the produced `.md` (single page/file) or, for a crawl, the
    `manifest.json` index plus the per-page `.md` files you need. Full layout and the
    frontmatter schema are in `references/output-format.md`.

@@ -24,10 +24,11 @@ def _fake_find_spec(present: set[str]):
 # --- missing_extra_message ----------------------------------------------------
 
 
-def test_missing_extra_message_includes_extra_and_pip_command():
+def test_missing_extra_message_includes_extra_and_install_command():
     msg = doctor.missing_extra_message("render")
     assert "[render]" in msg
-    assert "pip install 'mdnow[render]'" in msg
+    assert "mdnow[render]" in msg
+    assert "git+" in msg  # distributed via git, not PyPI
 
 
 # --- doctor.run_checks / render_report ----------------------------------------
@@ -41,11 +42,12 @@ def test_run_checks_reports_missing_extras_with_fix_commands(monkeypatch):
     report = doctor.render_report(checks)
 
     assert "[MISSING] [docs] extra" in report
-    assert "pip install 'mdnow[docs]'" in report
+    assert "mdnow[docs]" in report
     assert "[MISSING] [render] extra" in report
-    assert "pip install 'mdnow[render]'" in report
+    assert "mdnow[render]" in report
     assert "[MISSING] [mcp] extra" in report
-    assert "pip install 'mdnow[mcp]'" in report
+    assert "mdnow[mcp]" in report
+    assert "git+" in report  # git-based install hint, not PyPI
     assert "[MISSING] Claude skill" in report
     assert "mdnow --install-skill" in report
 

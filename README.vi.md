@@ -12,17 +12,16 @@
 
 Biến một trang web, cả một website, hay một tệp PDF/Office/âm thanh thành Markdown sạch mà LLM đọc được — mà không phải đẩy nội dung của bạn lên cloud của bên thứ ba.
 
-[![PyPI version](https://img.shields.io/pypi/v/mdnow.svg?color=3b82f6)](https://pypi.org/project/mdnow/)
-[![Python](https://img.shields.io/pypi/pyversions/mdnow.svg?color=3b82f6)](https://pypi.org/project/mdnow/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3b82f6.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-3b82f6.svg)](LICENSE)
-[![CI](https://github.com/longlee218/mdnow/actions/workflows/publish.yml/badge.svg)](https://github.com/longlee218/mdnow/actions)
+[![Install: git](https://img.shields.io/badge/install-via%20git-6f42c1.svg)](#cài-đặt)
 [![Local-first](https://img.shields.io/badge/data%20egress-none%20by%20default-16a34a.svg)](#-tại-sao-cục-bộ)
 
 ```bash
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 ```
 
-<sub>macOS / Linux · hoặc <code>uv tool install mdnow</code> · hoặc <code>pipx install mdnow</code></sub>
+<sub>macOS / Linux · hoặc <code>uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"</code></sub>
 
 </div>
 
@@ -106,14 +105,16 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 
 # Hoặc với uv (khuyến nghị)
-uv tool install mdnow
+uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
 
 # Hoặc với pipx
-pipx install mdnow
+pipx install "git+https://github.com/longlee218/mdnow"
 
 # Sau đó:
 mdnow https://example.com -o out/
 ```
+
+> **Phân phối qua git, không qua PyPI** — cài thẳng từ repo này. Không registry, không bước publish.
 
 Không chắc đã cài những gì? Chạy **`mdnow --doctor`** — nó liệt kê từng extra và câu lệnh chính xác để cài phần còn thiếu.
 
@@ -132,12 +133,12 @@ curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | 
 
 **uv** (khuyến nghị, đa nền tảng):
 ```bash
-uv tool install mdnow
+uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
 ```
 
 **pipx** (chỉ Python, không cần uv):
 ```bash
-pipx install mdnow
+pipx install "git+https://github.com/longlee218/mdnow"
 ```
 
 **Từ mã nguồn** (cho người đóng góp):
@@ -154,9 +155,9 @@ Bản nền `mdnow` lấy **HTML tĩnh** và chuyển đổi **tệp cục bộ*
 
 | Extra | Bổ sung | Cài đặt |
 |-------|---------|---------|
-| `[render]` | Trình duyệt stealth headless (Camoufox, tải ~300MB một lần) | `uv tool install "mdnow[render]"` rồi `mdnow --fetch-browser` |
-| `[docs]` | Chuyển đổi mọi tệp (PDF, Office, ảnh/OCR, âm thanh, YouTube) | `uv tool install "mdnow[docs]"` |
-| `[mcp]` | Chế độ MCP server cho Claude / Cursor | `uv tool install "mdnow[mcp]"` |
+| `[render]` | Trình duyệt stealth headless (Camoufox, tải ~300MB một lần) | `uv tool install "mdnow[render] @ git+https://github.com/longlee218/mdnow"` rồi `mdnow --fetch-browser` |
+| `[docs]` | Chuyển đổi mọi tệp (PDF, Office, ảnh/OCR, âm thanh, YouTube) | `uv tool install "mdnow[docs] @ git+https://github.com/longlee218/mdnow"` |
+| `[mcp]` | Chế độ MCP server cho Claude / Cursor | `uv tool install "mdnow[mcp] @ git+https://github.com/longlee218/mdnow"` |
 
 Với trình cài đặt shell, truyền cờ thay thế:
 ```bash
@@ -165,14 +166,14 @@ curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | 
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
 ```
 
-`pipx` cũng dùng tương tự: `pipx install "mdnow[render,docs,mcp]"`.
+`pipx` cũng dùng tương tự: `pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`.
 
 ### Windows
 
 Dùng **PowerShell** (không có một-dòng-lệnh shell). Cài uv hoặc pipx trước, rồi:
 
 ```powershell
-uv tool install "mdnow[render,docs,mcp]"
+uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
 mdnow --fetch-browser   # nếu dùng [render]
 ```
 
