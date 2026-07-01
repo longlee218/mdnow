@@ -34,7 +34,12 @@ Issues = "https://github.com/longlee218/mdnow/issues"
 dev = ["pytest>=8", "pytest-cov>=5", "build>=1.2", "twine>=5"]
 render = ["camoufox>=0.4"]            # stealth browser for the --render tier
 docs = [
-    "markitdown[all]>=0.1",           # any-file → markdown (PDF, Office, EPub, ...)
+    # Curated markitdown extras instead of [all]: [all] hard-pins
+    # youtube-transcript-api~=1.0.0 (conflicts with our >=1.2.4 below) and pulls
+    # unused Azure deps. The individual extras below cover PDF/Office/audio/YouTube
+    # and leave youtube-transcript-api unpinned, so our floor wins. EPub, images,
+    # csv/json/xml, zip, html are handled by markitdown's base package.
+    "markitdown[pdf,docx,pptx,xlsx,xls,outlook,audio-transcription,youtube-transcription]>=0.1",
     "youtube-transcript-api>=1.2.4",  # 1.0.x had broken XML fetch for YT transcripts
 ]
 mcp = ["mcp>=1.0.0,<2.0", "pydantic>=2"]  # MCP server mode for AI assistants (pydantic used directly)
