@@ -17,11 +17,17 @@ Turn a web page, a whole website, or a PDF/Office/audio file into clean Markdown
 [![Install: git](https://img.shields.io/badge/install-via%20git-6f42c1.svg)](#install)
 [![Local-first](https://img.shields.io/badge/data%20egress-none%20by%20default-16a34a.svg)](#-why-mdnow)
 
+**macOS / Linux**
 ```bash
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 ```
 
-<sub>macOS / Linux · or <code>uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"</code></sub>
+**Windows**
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
+```
+
+<sub>Or with uv: <code>uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"</code></sub>
 
 </div>
 
@@ -99,17 +105,23 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 
 ## Quick start
 
+**macOS / Linux**
 ```bash
-# One-liner (macOS / Linux)
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
+```
 
-# Or with uv (recommended)
+**Windows**
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
+```
+
+**Or with uv (recommended, cross-platform)**
+```bash
 uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
+```
 
-# Or with pipx
-pipx install "git+https://github.com/longlee218/mdnow"
-
-# Then:
+Then:
+```bash
 mdnow https://example.com -o out/
 ```
 

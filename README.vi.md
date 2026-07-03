@@ -17,11 +17,17 @@ Biến một trang web, cả một website, hay một tệp PDF/Office/âm thanh
 [![Install: git](https://img.shields.io/badge/install-via%20git-6f42c1.svg)](#cài-đặt)
 [![Local-first](https://img.shields.io/badge/data%20egress-none%20by%20default-16a34a.svg)](#-tại-sao-cục-bộ)
 
+**macOS / Linux**
 ```bash
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 ```
 
-<sub>macOS / Linux · hoặc <code>uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"</code></sub>
+**Windows**
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
+```
+
+<sub>Hoặc với uv: <code>uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"</code></sub>
 
 </div>
 
@@ -99,17 +105,23 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 
 ## Bắt đầu nhanh
 
+**macOS / Linux**
 ```bash
-# Một dòng (macOS / Linux)
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
+```
 
-# Hoặc với uv (khuyến nghị)
+**Windows**
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
+```
+
+**Hoặc với uv (khuyến nghị, đa nền tảng)**
+```bash
 uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
+```
 
-# Hoặc với pipx
-pipx install "git+https://github.com/longlee218/mdnow"
-
-# Sau đó:
+Sau đó:
+```bash
 mdnow https://example.com -o out/
 ```
 
