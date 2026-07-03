@@ -68,6 +68,18 @@ def _check_skill() -> Check:
     return Check("Claude skill", False, "not installed", fix="mdnow --install-skill")
 
 
+def _check_session_store() -> Check:
+    from . import sessions  # local import: keeps doctor's top level stdlib-only
+
+    if sessions.SESSION_DIR.is_dir():
+        count = len(list(sessions.SESSION_DIR.glob("*.txt")))
+    else:
+        count = 0
+    # informational only: count + dir, never the host list (avoid surprises)
+    detail = f"{count} saved at {sessions.SESSION_DIR}" if count else "none"
+    return Check("saved sessions", True, detail)
+
+
 def run_checks() -> list[Check]:
     """All doctor checks, in report order."""
     py = sys.version_info
@@ -78,6 +90,7 @@ def run_checks() -> list[Check]:
         _check_extra("render", "camoufox"),
         _check_render_browser(),
         _check_skill(),
+        _check_session_store(),
     ]
     return checks
 

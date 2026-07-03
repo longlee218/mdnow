@@ -2,6 +2,15 @@
 from __future__ import annotations
 
 import httpx
+import pytest
+
+from mdnow import sessions as _sessions
+
+
+@pytest.fixture(autouse=True)
+def _isolate_session_store(tmp_path_factory, monkeypatch):
+    """Keep tests hermetic: never read/write the real ~/.mdnow/sessions."""
+    monkeypatch.setattr(_sessions, "SESSION_DIR", tmp_path_factory.mktemp("sessions"))
 
 
 class FakeResp:

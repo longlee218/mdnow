@@ -1,7 +1,7 @@
 ---
 name: mdnow
-description: "Convert any URL, website, file, or local folder into clean, AI-ready markdown, fully locally with no API keys. Use this skill whenever the goal is to read, extract, or archive content as structured markdown rather than raw HTML: reading a single web page's text; crawling a whole docs site into a linked tree; fetching a JS-heavy, SPA, or anti-bot page; pulling pages from a private or internal site behind a login (Jira, Confluence, Notion, wikis, dashboards) using session cookies or bearer/API-key headers; converting a document (PDF, Word, PowerPoint, Excel, EPub, CSV, JSON, XML, image via OCR, ZIP), a remote non-HTML file, or an audio/video/YouTube transcript; or batch-converting an entire local folder of documents recursively into markdown + an index. Prefer this over a plain web fetch when the result must be clean markdown to summarize, cite, diff, or feed to another tool."
-argument-hint: "<url|file|folder> [-o dir] [--crawl [--all|--max-pages N]] [--render] [-H \"H: V\"] [--cookie-file f] [--allow-remote] [--no-llms]"
+description: "Convert any URL, website, file, or local folder into clean, AI-ready markdown, fully locally with no API keys. Use this skill to read, extract, or archive content as structured markdown: single web pages; whole docs sites (crawled + indexed); JS-heavy/SPA/anti-bot pages; interactive login capture from sites requiring 2FA/CAPTCHA; private/internal sites (Jira, Confluence, Notion, wikis, dashboards) using saved session cookies, bearer tokens, or API keys; documents (PDF, Word, PowerPoint, Excel, EPub, CSV/JSON/XML, images via OCR, ZIP); local folders (recursive batch); audio/video/YouTube transcripts. Prefer this over plain fetches when result must be clean, citable markdown for summarizing or feeding to another tool."
+argument-hint: "<url|file|folder> [-o dir] [--login] [--crawl [--all|--max-pages N]] [--render] [-H \"H: V\"] [--cookie-file f] [--allow-remote] [--no-llms]"
 ---
 
 # mdnow
@@ -14,7 +14,8 @@ YouTube). You pick only the flags.
 ## Scope
 
 - **Handles:** single web pages, whole-site/docs crawls, JS-heavy/SPA/anti-bot pages,
-  private/internal sites behind auth (session cookies or bearer/API-key headers),
+  interactive login capture from sites requiring 2FA/CAPTCHA, private/internal sites behind auth
+  (saved session cookies, bearer/API-key headers, or reused saved login sessions),
   local files (PDF, Word, PowerPoint, Excel, EPub, CSV/JSON/XML, images via OCR, ZIP),
   local folders (recursive batch convert of every file → per-file `.md` + index artifacts),
   remote non-HTML files, and audio/video/YouTube transcripts.
@@ -41,6 +42,7 @@ clean markdown:
    table, input types, and cost/extra caveats.
    - One web page → `mdnow <url> -o <dir>`
    - Whole site → `mdnow <url> --crawl --max-pages N -o <dir>` (or `--all` for no cap)
+   - Capture session interactively (2FA/CAPTCHA) → `mdnow --login <url>`; auto-reuses saved session on later runs
    - Private/internal site → add `-H "Authorization: Bearer $TOKEN"` or `--cookie-file <path>`
    - Local document → `mdnow ./report.pdf -o <dir>`
    - Local folder (batch) → `mdnow ./docs -o <dir>` (recursive; skips dotfiles; per-file
@@ -73,9 +75,9 @@ rather than egressing silently.
   fails, surface the error rather than inventing markdown.
 - Do not add `--allow-remote` unless the input is audio/video/YouTube and the user accepts
   the cloud egress.
-- **Auth secrets** (`-H` values, `--cookie-file`) are private: never echo, log, or paste a
+- **Auth secrets** (`-H` values, `--cookie-file`, `--login` sessions) are private: never echo, log, or paste a
   token/cookie value back to the user; prefer env vars (`-H "Authorization: Bearer $TOKEN"`)
-  over inlining literals. Only send auth to the host the user named.
+  over inlining literals. Only send auth to the host the user named. Saved sessions in `~/.mdnow/sessions/` are plaintext on disk with owner-only permissions (600); users can delete them manually to revoke.
 
 ## References
 

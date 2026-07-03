@@ -20,13 +20,14 @@ input or when the quick cases in `SKILL.md` don't cover the request.
 | Flag | Meaning |
 |------|---------|
 | `-o, --out <dir>` | Output directory (default: current dir) |
+| `--login` | Capture a session interactively: opens a headed Camoufox browser; you log in by hand (2FA/CAPTCHA work), then press Enter; saves cookies to `~/.mdnow/sessions/host.txt` for auto-reuse on future runs (requires `[render]`) |
 | `--crawl` | Crawl the whole site into a folder tree (web only; errors on file/folder inputs) |
 | `--max-pages N` | Cap crawl at N pages (default 100) |
 | `--all` | Crawl every page (ignore `--max-pages`) |
 | `--render` | Force the Camoufox stealth browser (JS / anti-bot) |
 | `--no-llms` | Skip the `llms.txt` discovery shortcut; force fetch/crawl |
 | `-H, --header "Name: Value"` | Add a request header (repeatable) for private/internal sites; applies to both static and render tiers |
-| `--cookie-file <path>` | Cookies for a private site: Netscape `cookies.txt` (browser-extension export) or a JSON list `[{name,value,domain,path}]` |
+| `--cookie-file <path>` | Cookies for a private site: Netscape `cookies.txt` (browser-extension export) or a JSON list `[{name,value,domain,path}]`; takes precedence over auto-reuse |
 | `--allow-remote` | Allow cloud-egress converters (audio/video transcription, YouTube) |
 
 Flags are additive on the single command; there are no subcommands. Utility flags
@@ -40,6 +41,7 @@ Flags are additive on the single command; there are no subcommands. Utility flag
 | One web page | `mdnow <url> -o <dir>` |
 | Whole site, capped | `mdnow <url> --crawl --max-pages N -o <dir>` |
 | Whole site, no cap | `mdnow <url> --crawl --all -o <dir>` |
+| Capture session interactively (2FA/CAPTCHA) | `mdnow --login <url>` (then next time: `mdnow <url> -o <dir>` auto-reuses) |
 | Private site (bearer/API-key) | `mdnow <url> -H "Authorization: Bearer $TOKEN" -o <dir>` |
 | Private site (session cookie) | `mdnow <url> --cookie-file cookies.txt -o <dir>` |
 | JS-heavy / SPA / anti-bot page | `mdnow <url> --render -o <dir>` |
@@ -53,6 +55,12 @@ Flags are additive on the single command; there are no subcommands. Utility flag
 
 - **Local-first:** only audio/video/YouTube need `--allow-remote`. Never add it for plain
   pages/documents. Without it, those inputs error clearly instead of egressing.
+- **Session capture (`--login`):** opens a real browser window; you log in by hand (supports 2FA, CAPTCHA);
+  mdnow reads the browser context cookies and saves them to `~/.mdnow/sessions/host.txt` with owner-only
+  permissions (600). Sessions are stored plaintext on disk — secure your machine accordingly. Auto-reuse on
+  next run if no `--cookie-file` is passed. Explicit `--cookie-file` always takes precedence over auto-reuse.
+  Host match is exact (lowercased, port stripped) — `www.host.com` and `host.com` are separate sessions.
+  Revoke by deleting the file: `rm ~/.mdnow/sessions/host.txt`.
 - **Private sites:** `-H`/`--cookie-file` auth both fetch tiers. Cookie values without a
   `domain` are scoped to the requested host (never leaked to a redirect target); custom
   headers *are* re-sent on a cross-origin redirect, so point mdnow at the exact trusted host.

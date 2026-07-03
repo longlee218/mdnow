@@ -85,6 +85,28 @@ def test_check_render_browser_falls_back_to_unknown_on_error(monkeypatch):
     assert "--fetch-browser" in check.fix
 
 
+# --- saved-session store check --------------------------------------------------
+
+
+def test_check_session_store_counts_files(tmp_path, monkeypatch):
+    import mdnow.sessions as sessions
+    store = tmp_path / "sessions"
+    store.mkdir()
+    (store / "a.corp.com.txt").write_text("# Netscape HTTP Cookie File\n")
+    (store / "b.corp.com.txt").write_text("# Netscape HTTP Cookie File\n")
+    monkeypatch.setattr(sessions, "SESSION_DIR", store)
+    check = doctor._check_session_store()
+    assert check.ok is True
+    assert "2 saved" in check.detail and str(store) in check.detail
+
+
+def test_check_session_store_empty_or_missing(tmp_path, monkeypatch):
+    import mdnow.sessions as sessions
+    monkeypatch.setattr(sessions, "SESSION_DIR", tmp_path / "nope")
+    check = doctor._check_session_store()
+    assert check.ok is True and check.detail == "none"
+
+
 # --- --doctor CLI flag ---------------------------------------------------------
 
 

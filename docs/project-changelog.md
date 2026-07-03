@@ -1,5 +1,22 @@
 # Project Changelog
 
+## [2026-07-03] — Interactive login capture + session auto-reuse
+
+**New features:**
+- **Interactive session capture** — `mdnow --login <url>` opens a headed Camoufox browser; user logs in by hand (2FA, CAPTCHA fully supported — it's a real person in a real browser); user presses Enter in the terminal; mdnow reads the browser context cookies and saves them to `~/.mdnow/sessions/<host>.txt` (owner-only perms 600, plaintext). Requires `[render]` extra.
+- **Automatic session reuse** — on any later web run (single page or `--crawl`), when no `--cookie-file` is passed and the target host has a saved session (exact lowercased host match, port stripped), mdnow auto-loads it silently with one notice line `using saved session for <host>`. Explicit `--cookie-file` always takes precedence (auto-reuse skipped). Does not apply to local file/folder/YouTube inputs. No parent-domain fallback: `www.host.com` and `host.com` are separate sessions.
+- **Session revocation** — delete `~/.mdnow/sessions/<host>.txt` to revoke. Security caveat: sessions are stored plaintext on disk (owner-only 600 perms); users should secure their machines; cookie values are never printed/logged by mdnow.
+- **Doctor reports sessions** — `mdnow --doctor` now shows an informational "saved sessions" row (count + dir, or "none").
+
+**Architecture:**
+- New `mdnow/sessions.py` — pure storage layer: `to_netscape()`, `save_session()`, `lookup_session()`, `SESSION_DIR` constant. Fully unit-tested.
+- New `mdnow/login.py` — headed Camoufox capture: `run_login(url)` launches browser, waits for user to log in and press Enter, returns cookies. Lazy camoufox import (mirrors `CamoufoxFetcher` pattern). NOT unit-tested (browser machinery, same policy as CamoufoxFetcher).
+- Key design: a saved session is just a Netscape cookies.txt file that `auth.load_cookies()` already parses — **the fetcher layer is unchanged**. Session auto-reuse gate placed in `cli.main` after file/folder/YouTube forks and before discovery.
+
+**Tests:** 205 tests passing.
+
+---
+
 ## [2026-07-03] — YouTube transcript rework + global error handling
 
 **Fixed:**

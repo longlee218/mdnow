@@ -292,6 +292,32 @@ mdnow https://example.com --crawl --no-llms -o out/
 
 Cho các site đòi yêu cầu xác thực (session cookies, bearer tokens, v.v.):
 
+**Chụp session tương tác** (dựa trên trình duyệt, khuyến cáo cho các site cần 2FA hoặc CAPTCHA)
+
+```bash
+mdnow --login https://internal.example.com/docs
+```
+
+Mở một trình duyệt Camoufox có giao diện, tự đăng nhập (2FA, CAPTCHA có thể dùng — đây là trình duyệt thực), rồi nhấn Enter trong terminal. mdnow đọc các cookie từ trình duyệt và lưu chúng vào `~/.mdnow/sessions/internal.example.com.txt` để sử dụng lại sau này. Yêu cầu `[render]` extra. Các tệp session dùng quyền hạn nghiêm ngặt (600) và không bao giờ được echoed/logged. Lần tiếp theo khi lấy từ host đó, session tự động được nạp (mdnow in một dòng thông báo `using saved session for <host>`):
+
+```bash
+mdnow https://internal.example.com/docs --crawl -o out/  # tự tải session đã lưu
+```
+
+Một cách rõ ràng `--cookie-file` luôn có ưu tiên hơn tự động tải lại:
+
+```bash
+mdnow https://internal.example.com --cookie-file ~/other-cookies.txt -o out/  # dùng ~/other-cookies.txt, bỏ qua tự động tải
+```
+
+Để hủy một session đã lưu, xóa tệp:
+
+```bash
+rm ~/.mdnow/sessions/internal.example.com.txt
+```
+
+**Lưu ý quan trọng:** Sessions là riêng biệt theo host (khớp chính xác, chữ thường hóa, bỏ port). Không có fallback parent-domain: `www.host.com` và `host.com` là các session riêng biệt. Giá trị cookie là plaintext trên đĩa — bảo vệ thư mục (`chmod 700 ~/.mdnow/sessions`).
+
 **Bearer token (API key, OAuth)**
 
 ```bash
@@ -325,11 +351,12 @@ mdnow https://api.example.com -H "Authorization: Bearer $TOKEN" -H "X-API-Key: $
 | `--max-pages N`   | Số trang tối đa để crawl (mặc định 100)                                         |
 | `--all`           | Crawl tất cả các trang (bỏ qua `--max-pages`)                                   |
 | `--render`        | Dùng trình duyệt stealth Camoufox (site JS/anti-bot); cần `[render]`            |
+| `--login`         | Mở trình duyệt có giao diện để chụp session tương tác (cần `[render]`); lưu vào `~/.mdnow/sessions/<host>.txt` để tái sử dụng |
 | `--no-llms`       | Bỏ qua discovery `llms.txt`; ép fetch/crawl                                     |
 | `--allow-remote`  | Cho phép API cloud: phiên âm âm thanh/video, YouTube (gửi dữ liệu ra, tùy chọn) |
 | `-H, --header`    | Thêm HTTP header (có thể lặp); ví dụ: `-H "Authorization: Bearer $TOKEN"`       |
 | `--cookie-file`   | Đường dẫn tới tệp cookies Netscape hoặc JSON để xác thực                        |
-| `--doctor`        | Báo cáo extras đã cài/còn thiếu (kèm cách khắc phục) rồi thoát                  |
+| `--doctor`        | Báo cáo extras đã cài/còn thiếu (kèm cách khắc phục), các session đã lưu, rồi thoát |
 | `--fetch-browser` | Tải trình duyệt Camoufox cho `--render` rồi thoát                               |
 | `--install-skill` | Cài skill Claude Code đóng gói sẵn vào `~/.claude/skills/mdnow`                 |
 | `--update`        | Nâng cấp mdnow lên phiên bản mới nhất từ git                                    |

@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 
 import typer
 
-from . import auth, commands, doctor, folder, ui
+from . import auth, commands, doctor, folder, sessions, ui
 from .crawler import crawl_site
 from .discovery import discover
 from .inputs import is_local_dir, is_local_file, is_youtube
@@ -57,6 +57,9 @@ def main(
     update: bool = typer.Option(
         False, "--update", help="Upgrade mdnow to the latest version from git and exit"
     ),
+    login: bool = typer.Option(
+        False, "--login", help="Open a visible browser to log in, save the session for reuse, and exit"
+    ),
 ) -> None:
     """Fetch URL → clean markdown. Single page, or --crawl for a whole-site tree."""
     if run_doctor:
@@ -87,6 +90,17 @@ def main(
             ui.error(str(exc))
             raise typer.Exit(1) from exc
         ui.success("installed", f"skill to {dest}", "usable by Claude")
+        return
+
+    if login:
+        from .login import run_login  # local import: the `login` param shadows the module
+        try:
+            path = run_login(url)
+        except (RuntimeError, ValueError, OSError) as exc:
+            ui.error(str(exc))
+            raise typer.Exit(1) from exc
+        ui.success("saved session", str(path), f"for {urlparse(url).hostname}")
+        ui.hint(f"Next: mdnow {url}  (session auto-loads)")
         return
 
     if not url:
@@ -129,6 +143,20 @@ def main(
     if is_youtube(url):
         _convert_youtube(url, out, allow_remote)
         return
+
+    # Saved-session auto-reuse (--login stored cookies for this host earlier).
+    # Explicit --cookie-file always wins; local file/dir/YouTube forks returned above.
+    if cookies is None:
+        host = urlparse(url).hostname
+        saved = sessions.lookup_session(host) if host else None
+        if saved is not None:
+            try:
+                cookies = auth.load_cookies(saved)
+            except (ValueError, OSError) as exc:
+                ui.error(str(exc))
+                ui.hint(f"Saved session for {host} is unreadable — delete {saved} or re-run: mdnow --login {url}")
+                raise typer.Exit(1) from exc
+            ui.note(f"using saved session for {host}")
 
     # Discovery seam: a site may already publish ready-made markdown (llms.txt).
     if not no_llms:

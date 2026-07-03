@@ -220,6 +220,91 @@ def test_missing_url_errors():
     assert "URL or file path is required" in res.output
 
 
+# --- --login capture ----------------------------------------------------------
+
+
+def test_login_flag_invokes_capture_and_reports(tmp_path, monkeypatch):
+    import mdnow.login as login_mod
+    seen = {}
+
+    def fake_login(url):
+        seen["url"] = url
+        return tmp_path / "s.com.txt"
+    monkeypatch.setattr(login_mod, "run_login", fake_login)
+    res = runner.invoke(_app(), ["https://s.com/wiki", "--login"])
+    assert res.exit_code == 0
+    assert "saved session" in res.stdout and "s.com" in res.stdout
+    assert seen["url"] == "https://s.com/wiki"
+
+
+def test_login_with_non_url_target_errors():
+    # real run_login validates BEFORE any browser import — no camoufox needed
+    res = runner.invoke(_app(), ["./some-local-dir", "--login"])
+    assert res.exit_code == 1
+
+
+def test_login_without_url_errors():
+    res = runner.invoke(_app(), ["--login"])
+    assert res.exit_code == 1
+
+
+# --- saved-session auto-reuse --------------------------------------------------
+
+
+def _session_file(tmp_path):
+    p = tmp_path / "s.com.txt"
+    p.write_text("# Netscape HTTP Cookie File\ns.com\tFALSE\t/\tFALSE\t0\tsid\tsecretvalue\n")
+    return p
+
+
+def _acquire_capturing(seen):
+    def fake(url, render, allow_remote, **kw):
+        seen.update(kw)
+        return (FetchResult("https://s.com/p", b"x", "text/html"),
+                Extracted("words " * 60, "Page", None))
+    return fake
+
+
+def test_saved_session_autoloads_and_notes(tmp_path, monkeypatch):
+    monkeypatch.setattr(cli, "discover", lambda url, crawl: None)
+    monkeypatch.setattr(cli.sessions, "lookup_session", lambda host: _session_file(tmp_path))
+    seen = {}
+    monkeypatch.setattr(run, "_acquire", _acquire_capturing(seen))
+    res = runner.invoke(_app(), ["https://s.com/p", "-o", str(tmp_path)])
+    assert res.exit_code == 0
+    assert "using saved session for s.com" in res.output
+    assert seen["cookies"] and seen["cookies"][0]["name"] == "sid"
+    # value hygiene: the cookie value must never surface in output
+    assert "secretvalue" not in res.output
+
+
+def test_explicit_cookie_file_wins_over_saved_session(tmp_path, monkeypatch):
+    monkeypatch.setattr(cli, "discover", lambda url, crawl: None)
+
+    def boom(host):
+        raise AssertionError("lookup_session must not be consulted with --cookie-file")
+    monkeypatch.setattr(cli.sessions, "lookup_session", boom)
+    seen = {}
+    monkeypatch.setattr(run, "_acquire", _acquire_capturing(seen))
+    res = runner.invoke(
+        _app(), ["https://s.com/p", "--cookie-file", str(_session_file(tmp_path)), "-o", str(tmp_path)]
+    )
+    assert res.exit_code == 0
+    assert "using saved session" not in res.output
+    assert seen["cookies"] and seen["cookies"][0]["name"] == "sid"
+
+
+def test_no_saved_session_stays_unauthenticated(tmp_path, monkeypatch):
+    monkeypatch.setattr(cli, "discover", lambda url, crawl: None)
+    monkeypatch.setattr(cli.sessions, "lookup_session", lambda host: None)
+    seen = {}
+    monkeypatch.setattr(run, "_acquire", _acquire_capturing(seen))
+    res = runner.invoke(_app(), ["https://s.com/p", "-o", str(tmp_path)])
+    assert res.exit_code == 0
+    assert "using saved session" not in res.output
+    assert seen["cookies"] is None
+
+
 # --- Folder input routing ----------------------------------------------------
 
 

@@ -292,6 +292,32 @@ mdnow https://example.com --crawl --no-llms -o out/
 
 For sites behind authentication (session cookies, bearer tokens, etc.):
 
+**Interactive login capture** (browser-based, recommended for sites requiring 2FA or CAPTCHA)
+
+```bash
+mdnow --login https://internal.example.com/docs
+```
+
+Open a headed Camoufox browser, log in by hand (2FA, CAPTCHA work — it's a real browser), then press Enter in the terminal. mdnow reads the browser's cookies and saves them to `~/.mdnow/sessions/internal.example.com.txt` for future use. Requires `[render]` extra. Session files use strict permissions (600) and are never echoed/logged. Next time you fetch from that host, the session auto-loads (mdnow prints a one-line `using saved session for <host>` notice):
+
+```bash
+mdnow https://internal.example.com/docs --crawl -o out/  # auto-reuses saved session
+```
+
+Explicit `--cookie-file` always takes precedence over auto-reuse:
+
+```bash
+mdnow https://internal.example.com --cookie-file ~/other-cookies.txt -o out/  # uses ~/other-cookies.txt, skips auto-reuse
+```
+
+To revoke a saved session, delete the file:
+
+```bash
+rm ~/.mdnow/sessions/internal.example.com.txt
+```
+
+**Important:** Sessions are host-specific (exact lowercased match, port stripped). No parent-domain fallback: `www.host.com` and `host.com` are separate sessions. Cookie values are plaintext on disk — secure the directory (`chmod 700 ~/.mdnow/sessions`).
+
 **Bearer token (API key, OAuth)**
 
 ```bash
@@ -325,11 +351,12 @@ mdnow https://api.example.com -H "Authorization: Bearer $TOKEN" -H "X-API-Key: $
 | `--max-pages N`   | Max pages to crawl (default 100)                                       |
 | `--all`           | Crawl all pages (ignore `--max-pages`)                                 |
 | `--render`        | Use the Camoufox stealth browser (JS/anti-bot); requires `[render]`    |
+| `--login`         | Open a headed browser to capture a session interactively (requires `[render]`); saves to `~/.mdnow/sessions/<host>.txt` for auto-reuse |
 | `--no-llms`       | Skip `llms.txt` discovery; force fetch/crawl                           |
 | `--allow-remote`  | Allow cloud APIs: audio/video transcription, YouTube (opt-in egress)   |
 | `-H, --header`    | Add HTTP header (repeatable); e.g. `-H "Authorization: Bearer $TOKEN"` |
 | `--cookie-file`   | Path to Netscape cookies.txt or JSON cookies list for authentication   |
-| `--doctor`        | Report installed/missing extras (and how to fix) and exit              |
+| `--doctor`        | Report installed/missing extras (and how to fix), saved sessions, and exit |
 | `--fetch-browser` | Download the Camoufox browser for `--render` and exit                  |
 | `--install-skill` | Install the bundled Claude Code skill to `~/.claude/skills/mdnow`      |
 | `--update`        | Upgrade mdnow to the latest version from git                           |
