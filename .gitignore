@@ -18,3 +18,8 @@ out/
 
 # Transient tooling logs
 .claude/hooks/.logs/
+
+# Personal, local-only files (not for the remote)
+/CLAUDE.md
+/plans/
+/.claude/
