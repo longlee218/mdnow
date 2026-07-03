@@ -1,1 +1,0 @@
-- [Optional-extra import hint pattern](project_optional-extras.md) — how mdnow guards optional deps ([render]/[docs])

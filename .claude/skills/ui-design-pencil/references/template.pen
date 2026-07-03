@@ -1,7 +1,0 @@
-{
-  "version": "2.8",
-  "children": [],
-  "imports": {
-    "n": "pencil:shadcn.lib.pen"
-  }
-}
