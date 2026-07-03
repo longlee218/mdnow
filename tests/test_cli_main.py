@@ -196,3 +196,46 @@ def test_missing_url_errors():
     res = runner.invoke(_app(), [])
     assert res.exit_code == 1
     assert "URL or file path is required" in res.output
+
+
+# --- Folder input routing ----------------------------------------------------
+
+
+def test_folder_routes_to_convert_folder(tmp_path, monkeypatch):
+    src = tmp_path / "docs"
+    src.mkdir()
+    out = tmp_path / "out"
+    _no_discover(monkeypatch)
+    seen = {}
+
+    def fake(root, o, allow_remote, echo, *, progress=None):
+        seen["args"] = (root, o, allow_remote, progress)
+        return (2, 0)
+    monkeypatch.setattr(cli.folder, "convert_folder", fake)
+
+    res = runner.invoke(_app(), [str(src), "-o", str(out)])
+    assert res.exit_code == 0
+    assert "file(s) converted" in res.stdout
+    root, o, allow_remote, progress = seen["args"]
+    assert root == src and o == out and allow_remote is False and progress is not None
+
+
+def test_folder_with_crawl_errors(tmp_path, monkeypatch):
+    src = tmp_path / "docs"
+    src.mkdir()
+
+    def boom(*a, **k):
+        raise AssertionError("convert_folder must not run with --crawl")
+    monkeypatch.setattr(cli.folder, "convert_folder", boom)
+    res = runner.invoke(_app(), [str(src), "--crawl", "-o", str(tmp_path / "out")])
+    assert res.exit_code == 1
+
+
+def test_folder_ignores_render_and_no_llms(tmp_path, monkeypatch):
+    src = tmp_path / "docs"
+    src.mkdir()
+    _no_discover(monkeypatch)
+    monkeypatch.setattr(cli.folder, "convert_folder",
+                        lambda *a, **k: (1, 0))
+    res = runner.invoke(_app(), [str(src), "--render", "--no-llms", "-o", str(tmp_path / "out")])
+    assert res.exit_code == 0

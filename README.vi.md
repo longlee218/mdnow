@@ -6,11 +6,11 @@
 
 # mdnow
 
-### Mọi URL. Mọi website. Mọi tệp. → Markdown sạch, sẵn sàng cho LLM.
+### Mọi URL. Mọi website. Mọi tệp. Thư mục cục bộ. → Markdown sạch, sẵn sàng cho LLM.
 
 **100% cục bộ. Không cần API key. Không gửi dữ liệu ra ngoài. Chỉ một câu lệnh.**
 
-Biến một trang web, cả một website, hay một tệp PDF/Office/âm thanh thành Markdown sạch mà LLM đọc được — mà không phải đẩy nội dung của bạn lên cloud của bên thứ ba.
+Biến một trang web, cả một website, một thư mục cục bộ, hay một tệp PDF/Office/âm thanh thành Markdown sạch mà LLM đọc được — mà không phải đẩy nội dung của bạn lên cloud của bên thứ ba.
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-3b82f6.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-3b82f6.svg)](LICENSE)
@@ -264,6 +264,23 @@ mdnow https://example.com/paper.pdf -o out/
 mdnow "https://youtu.be/watch?v=abc123" --allow-remote -o out/   # transcript YouTube (gửi ra cloud)
 ```
 
+### Thư mục: chuyển đổi hàng loạt thư mục cục bộ
+
+```bash
+mdnow ./docs -o out/                  # chuyển đổi tất cả tệp trong thư mục, bảo toàn cấu trúc thư mục con
+mdnow ./docs -o out/ --all -max-pages 1000  # giới hạn cao hơn nếu cần (mặc định dựa theo tệp)
+```
+
+Đầu ra: mỗi tệp một `.md` + `llms.txt` + `llms-full.txt` + `manifest.json` (tương tự chế độ crawl).
+
+Hành vi:
+- **Bảo toàn cấu trúc thư mục con**: `docs/guide/setup.pdf` → `out/guide/setup.md`
+- **Bỏ qua dotfiles và dotdirs** (`.git`, `.venv`, `.DS_Store`, v.v.)
+- **Cô lập lỗi từng tệp**: tệp không thể chuyển đổi (ví dụ: âm thanh mà không có `--allow-remote`) bị bỏ qua, phần còn lại tiếp tục
+- **Các cờ fetch-tier bị bỏ qua**: `--render`, `-H`, `--cookie-file`, `--no-llms` không áp dụng cho tệp cục bộ và được bỏ qua im lặng
+
+Lưu ý: `--crawl` trên thư mục bị từ chối (chế độ thư mục luôn xây dựng chỉ mục); dùng đầu vào thư mục trực tiếp để chuyển đổi hàng loạt.
+
 ### Bỏ qua discovery, ép fetch/crawl
 
 ```bash
@@ -380,11 +397,12 @@ Chế độ crawl còn ghi thêm ba tệp:
 - **Ảnh** — bị loại bỏ nhưng giữ lại alt-text (HTML); hoặc trích bằng OCR (tệp ảnh, `[docs]`).
 - **Tệp** — non-HTML cục bộ/từ xa được tự nhận diện và chuyển đổi qua markitdown (PDF, Word, PowerPoint, Excel, EPub, ảnh, CSV/JSON/XML, ZIP).
 - **Âm thanh/video & YouTube** — cần `--allow-remote` (phiên âm qua cloud). Không có nó, sẽ báo lỗi rõ ràng.
-- **`--crawl`** — không hợp lệ cho đầu vào là tệp (chỉ một tệp); báo lỗi rõ ràng.
+- **Thư mục** — chuyển đổi tất cả tệp trong thư mục, bảo toàn cấu trúc thư mục con; dotfiles/dotdirs bị bỏ qua; cô lập lỗi từng tệp (một lỗi không làm dừng lệnh); phát hành các tệp artifacts kiểu crawl (`llms.txt`, `llms-full.txt`, `manifest.json`).
+- **`--crawl`** — không hợp lệ cho đầu vào là tệp / thư mục (chỉ fetch trang đơn hoặc thư mục hàng loạt); báo lỗi rõ ràng.
 - **Crawl** — tìm qua `sitemap.xml` trước, quay về BFS; tôn trọng `robots.txt`, giới hạn tốc độ, cô lập lỗi từng trang.
 - **SPA render bằng JS** (tài liệu React/Angular, v.v.) — tự nâng cấp trong chế độ crawl: nếu discovery tĩnh không thấy link, trang gốc được render; trang mỏng tự render. Cần `[render]` + `mdnow --fetch-browser`.
 - **Cloudflare / anti-bot** — vượt qua bằng `--render` là nỗ lực tốt nhất có thể (best-effort).
-- **Output terminal** — trạng thái có màu, spinner khi fetch, progress bar trực tiếp cho `--crawl`, kèm gợi ý bước tiếp theo. Tự động chuyển về text thuần khi pipe hoặc trên non-tty / `NO_COLOR`, nên script không bị ảnh hưởng.
+- **Output terminal** — trạng thái có màu, spinner khi fetch, progress bar trực tiếp cho `--crawl` hoặc chuyển đổi thư mục, kèm gợi ý bước tiếp theo. Tự động chuyển về text thuần khi pipe hoặc trên non-tty / `NO_COLOR`, nên script không bị ảnh hưởng.
 
 ---
 

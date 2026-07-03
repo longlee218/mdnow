@@ -21,6 +21,32 @@ def test_success_keeps_status_and_detail_substrings(monkeypatch):
     assert "created" in out and "out/page.md" in out and "40 words" in out
 
 
+def test_folder_summary_substrings(monkeypatch):
+    buf = _capture(monkeypatch)
+    ui.folder_summary(4, 1, "out/")
+    out = buf.getvalue()
+    assert "file(s) converted" in out and "4" in out and "1 failed" in out and "out/" in out
+
+
+def test_folder_summary_clean_run_mark(monkeypatch):
+    buf = _capture(monkeypatch)
+    ui.folder_summary(3, 0, "out/")
+    assert "✓" in buf.getvalue()
+
+
+def test_crawl_summary_still_says_pages(monkeypatch):
+    buf = _capture(monkeypatch)
+    ui.crawl_summary(2, 0, "out/")
+    assert "page(s) written" in buf.getvalue()
+
+
+def test_progress_bar_accepts_verb(monkeypatch):
+    _capture(monkeypatch)
+    with ui.progress_bar("converting") as advance:
+        advance(1, 2, "a.pdf")
+        advance(2, 2, "b.pdf")
+
+
 def test_hint_and_note_render(monkeypatch):
     buf = _capture(monkeypatch)
     ui.hint("Read it: out/page.md")

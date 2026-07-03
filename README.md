@@ -6,11 +6,11 @@
 
 # mdnow
 
-### Any URL. Any site. Any file. → Clean, LLM-ready Markdown.
+### Any URL. Any site. Any file. Local folders. → Clean, LLM-ready Markdown.
 
 **100% local. No API keys. No data egress. One command.**
 
-Turn a web page, a whole website, or a PDF/Office/audio file into clean Markdown your LLM can actually read — without shipping your content to someone else's cloud.
+Turn a web page, a whole website, a local folder, or a PDF/Office/audio file into clean Markdown your LLM can actually read — without shipping your content to someone else's cloud.
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-3b82f6.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-3b82f6.svg)](LICENSE)
@@ -264,6 +264,23 @@ mdnow https://example.com/paper.pdf -o out/
 mdnow "https://youtu.be/watch?v=abc123" --allow-remote -o out/   # YouTube transcript (cloud egress)
 ```
 
+### Folder: batch convert local directory
+
+```bash
+mdnow ./docs -o out/                  # recursively convert all files, preserve subfolder structure
+mdnow ./docs -o out/ --all -max-pages 1000  # higher limit if needed (default is per-file limit)
+```
+
+Output: per-file `.md` + `llms.txt` + `llms-full.txt` + `manifest.json` (same as crawl mode).
+
+Behavior:
+- **Preserves subfolder structure**: `docs/guide/setup.pdf` → `out/guide/setup.md`
+- **Skips dotfiles and dotdirs** (`.git`, `.venv`, `.DS_Store`, etc.)
+- **Per-file failure isolation**: unconvertible file (e.g., audio without `--allow-remote`) is skipped, rest continue
+- **Fetch-tier flags ignored**: `--render`, `-H`, `--cookie-file`, `--no-llms` don't apply to local files and are silently ignored
+
+Note: `--crawl` on a folder is rejected (folder mode always builds the index); use folder input directly for batch conversion.
+
 ### Skip discovery, force fetch/crawl
 
 ```bash
@@ -380,11 +397,12 @@ Crawl mode also writes three artifacts:
 - **Images** — stripped but alt-text preserved (HTML); or OCR-extracted (image files, `[docs]`).
 - **Files** — local/remote non-HTML auto-detected and converted via markitdown (PDF, Word, PowerPoint, Excel, EPub, images, CSV/JSON/XML, ZIP).
 - **Audio/video & YouTube** — require `--allow-remote` (cloud transcription). Without it, they error clearly.
-- **`--crawl`** — invalid for file inputs (single file only); errors clearly.
+- **Folders** — recursively convert every file, preserving subfolder structure; dotfiles/dotdirs skipped; per-file failures isolated (one failure doesn't abort the run); emits crawl-style artifacts (`llms.txt`, `llms-full.txt`, `manifest.json`).
+- **`--crawl`** — invalid for file / folder inputs (single page fetch or batch folder only); errors clearly.
 - **Crawl** — discovers via `sitemap.xml` first, falls back to BFS; respects `robots.txt`, rate-limits, isolates per-page failures.
 - **JS-rendered SPAs** (React/Angular docs, etc.) — auto-escalate in crawl mode: if static discovery finds no links, the start page is rendered; thin pages auto-render. Requires `[render]` + `mdnow --fetch-browser`.
 - **Cloudflare / anti-bot** — `--render` bypass is best-effort.
-- **Terminal output** — colored status, a spinner while fetching, and a live progress bar for `--crawl`, plus actionable next-step hints. Auto-degrades to plain text when piped or on a non-tty / `NO_COLOR`, so scripts are unaffected.
+- **Terminal output** — colored status, a spinner while fetching, and a live progress bar for `--crawl` or folder conversion, plus actionable next-step hints. Auto-degrades to plain text when piped or on a non-tty / `NO_COLOR`, so scripts are unaffected.
 
 ---
 

@@ -1,5 +1,18 @@
 # Project Changelog
 
+## [2026-07-03] — Folder batch conversion
+
+**New features:**
+- **Local folder input** — `mdnow ./docs -o out/` now recursively converts every file under a local directory to markdown, preserving subfolder structure (e.g. `guide/setup.pdf` → `out/guide/setup.md`). Dotfiles/dotdirs (`.git`, `.venv`, `.DS_Store`) are skipped. Per-file failure isolation: one unconvertible file is reported as skipped and never aborts the run. Emits crawl-style AI artifacts: `llms.txt`, `llms-full.txt`, `manifest.json` (with per-file sections/outline/token_estimate metadata). `--crawl` on a folder is rejected (folder mode always builds the index, so the flag is redundant). Fetch-tier flags (`--render`, `-H`, `--cookie-file`, `--no-llms`) are silently ignored for folder input (same as single-file). UI uses Rich progress bar and "Converting" step label, same as crawl.
+
+**Architecture:**
+- New `mdnow/folder.py` mirrors `crawler.py` (two-pass: convert-all with per-file isolation → map paths → write + emit artifacts). Reuses `artifacts.py` unchanged. Path mapping uses `slugs.file_slug` (extension-stripped) + sha1[:6] suffix for collisions, NOT `urls.build_path_map` (URL-only).
+- `ui.py` gained `folder_summary` and `progress_bar(verb=…)` parameter; folder mode routes all output through the ui seam.
+
+**Tests:** 141 tests passing.
+
+---
+
 ## [2026-07-03] — CLI UI enhancement
 
 **Changed:**
