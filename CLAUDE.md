@@ -12,6 +12,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Prefer the `docs` skill / `docs-manager` agent to do the sync. Keep this file in sync when architecture or commands change.
 
+## Skill sync (MANDATORY)
+
+The bundled skill at `mdnow/skill/` teaches *other AIs* how to drive the CLI — it is a public surface, not internal notes. Two rules:
+
+1. **Any change to a feature, CLI flag, flag list, input type, or output schema MUST be synced into `mdnow/skill/` in the same change set** — alongside the README sync above. A skill that lists stale flags or a stale frontmatter/manifest schema misleads the agent using it; treat skill drift as a bug, exactly like README drift.
+2. **When writing/editing the skill, always follow skill best practices** — invoke the `skill-creator` skill for its guidance and validate with `.venv/bin/python .claude/skills/skill-creator/scripts/quick_validate.py mdnow/skill`. Keep `SKILL.md` and each reference **< 150 lines**, the `description` **< 200 chars**, use imperative instructions, avoid duplication between SKILL.md and references, and preserve the `## Scope` and `## Security` blocks (they carry the benchmark's security score).
+
 ## Commands
 
 ```bash

@@ -1,7 +1,7 @@
 ---
 name: mdnow
-description: "Convert a URL, website, or file (PDF, Office, image, audio, YouTube) to clean markdown. Use to read a web page's text, crawl a docs site, or extract a document to summarize or cite. Runs locally."
-argument-hint: "<url|file> [-o dir] [--crawl [--all|--max-pages N]] [--render] [--allow-remote] [--no-llms]"
+description: "Convert a URL, website, or file (PDF, Office, image, audio, YouTube) to clean markdown — one page, a whole-site crawl, or a private/internal site via headers/cookies. Runs locally."
+argument-hint: "<url|file> [-o dir] [--crawl [--all|--max-pages N]] [--render] [-H \"H: V\"] [--cookie-file f] [--allow-remote] [--no-llms]"
 ---
 
 # mdnow
@@ -14,6 +14,7 @@ the flags.
 ## Scope
 
 - **Handles:** single web pages, whole-site/docs crawls, JS-heavy/SPA/anti-bot pages,
+  private/internal sites behind auth (session cookies or bearer/API-key headers),
   local files (PDF, Word, PowerPoint, Excel, EPub, CSV/JSON/XML, images via OCR, ZIP),
   remote non-HTML files, and audio/video/YouTube transcripts.
 - **Does NOT handle:** writing or editing markdown content, translation, summarizing on
@@ -38,6 +39,7 @@ clean markdown:
    table, input types, and cost/extra caveats.
    - One web page → `mdnow <url> -o <dir>`
    - Whole site → `mdnow <url> --crawl --max-pages N -o <dir>` (or `--all` for no cap)
+   - Private/internal site → add `-H "Authorization: Bearer $TOKEN"` or `--cookie-file <path>`
    - Local document → `mdnow ./report.pdf -o <dir>`
    - Audio/video/YouTube → add `--allow-remote` (required — cloud egress)
 3. **Choose an output dir (`-o`)**: the session scratchpad if the markdown is throwaway
@@ -46,8 +48,9 @@ clean markdown:
 4. **Run it** with Bash: `mdnow <input> -o <dir> [flags]`. Requires `mdnow` on PATH
    (`uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"`).
 5. **Read the output.** `Read` the produced `.md` (single page/file) or, for a crawl, the
-   `manifest.json` index plus the per-page `.md` files you need. Full layout and the
-   frontmatter schema are in `references/output-format.md`.
+   `manifest.json` index plus the per-page `.md` files you need. For fast retrieval, use
+   each page's `outline` (frontmatter) and manifest `sections` (per-heading token sizes) to
+   pick a section before reading a full body. Full schema in `references/output-format.md`.
 
 ## Local-first rule
 
@@ -65,6 +68,9 @@ rather than egressing silently.
   fails, surface the error rather than inventing markdown.
 - Do not add `--allow-remote` unless the input is audio/video/YouTube and the user accepts
   the cloud egress.
+- **Auth secrets** (`-H` values, `--cookie-file`) are private: never echo, log, or paste a
+  token/cookie value back to the user; prefer env vars (`-H "Authorization: Bearer $TOKEN"`)
+  over inlining literals. Only send auth to the host the user named.
 
 ## References
 
