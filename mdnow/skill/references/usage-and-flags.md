@@ -24,9 +24,13 @@ input or when the quick cases in `SKILL.md` don't cover the request.
 | `--all` | Crawl every page (ignore `--max-pages`) |
 | `--render` | Force the Camoufox stealth browser (JS / anti-bot) |
 | `--no-llms` | Skip the `llms.txt` discovery shortcut; force fetch/crawl |
+| `-H, --header "Name: Value"` | Add a request header (repeatable) for private/internal sites; applies to both static and render tiers |
+| `--cookie-file <path>` | Cookies for a private site: Netscape `cookies.txt` (browser-extension export) or a JSON list `[{name,value,domain,path}]` |
 | `--allow-remote` | Allow cloud-egress converters (audio/video transcription, YouTube) |
 
-Flags are additive on the single command; there are no subcommands.
+Flags are additive on the single command; there are no subcommands. Utility flags
+(`--doctor` to report missing extras, `--update` to self-upgrade, `--fetch-browser`,
+`--install-skill`) exit without converting.
 
 ## Intent → command
 
@@ -35,6 +39,8 @@ Flags are additive on the single command; there are no subcommands.
 | One web page | `mdnow <url> -o <dir>` |
 | Whole site, capped | `mdnow <url> --crawl --max-pages N -o <dir>` |
 | Whole site, no cap | `mdnow <url> --crawl --all -o <dir>` |
+| Private site (bearer/API-key) | `mdnow <url> -H "Authorization: Bearer $TOKEN" -o <dir>` |
+| Private site (session cookie) | `mdnow <url> --cookie-file cookies.txt -o <dir>` |
 | JS-heavy / SPA / anti-bot page | `mdnow <url> --render -o <dir>` |
 | Local document | `mdnow ./report.pdf -o <dir>` |
 | Remote non-HTML file | `mdnow https://host/paper.pdf -o <dir>` |
@@ -45,6 +51,11 @@ Flags are additive on the single command; there are no subcommands.
 
 - **Local-first:** only audio/video/YouTube need `--allow-remote`. Never add it for plain
   pages/documents. Without it, those inputs error clearly instead of egressing.
+- **Private sites:** `-H`/`--cookie-file` auth both fetch tiers. Cookie values without a
+  `domain` are scoped to the requested host (never leaked to a redirect target); custom
+  headers *are* re-sent on a cross-origin redirect, so point mdnow at the exact trusted host.
+  Auth secrets are never written to output. `llms.txt` discovery probes are unauthenticated —
+  add `--no-llms` if they confuse a private site.
 - **Images** are dropped but their alt-text is kept inline (web) or OCR'd (image files).
 - **Crawling an SPA renders every page (~3s each)** — a 100-page site ≈ several minutes,
   and looks idle during the fetch phase (two-pass: fetch all → write all). Prefer

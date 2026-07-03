@@ -19,6 +19,9 @@ content_hash: <sha256>
 word_count: 1234
 token_estimate: 247                        # ~chars/4
 summary: "First paragraph, extracted."
+outline:                                    # heading anchors, for fast navigation
+  - "# Example Article"
+  - "## Usage"
 ---
 
 # Example Article
@@ -55,15 +58,23 @@ absolute; external links untouched). Plus three artifacts in the output dir:
         "token_estimate": 247,
         "word_count": 1234,
         "summary": "…",
-        "headings": ["Overview", "Usage", "…"]
+        "headings": ["Overview", "Usage", "…"],
+        "sections": [
+          {"slug": "_intro", "heading": "", "level": 0, "word_count": 40, "token_estimate": 53},
+          {"slug": "usage", "heading": "Usage", "level": 2, "word_count": 300, "token_estimate": 396}
+        ]
       }
     ]
   }
   ```
 
+  `sections` is a heading-delimited chunk map (in document order; `_intro` = text before
+  the first heading). Use each section's `token_estimate`/`word_count` to pick which part
+  of a page to read before opening the full `local_path`.
+
 ## Reading it back
 
 - Single page/file → `Read` the one `.md`.
-- Crawl → `Read` `manifest.json` first to pick relevant pages (title/summary/headings),
-  then open only the `local_path`s you need. Use `llms-full.txt` when you want everything
-  in one pass.
+- Crawl → `Read` `manifest.json` first to pick relevant pages (title/summary/headings/
+  sections), then open only the `local_path`s you need. Use `llms-full.txt` when you want
+  everything in one pass.
