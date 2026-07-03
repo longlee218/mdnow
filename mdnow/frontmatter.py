@@ -34,6 +34,8 @@ def build(
         "word_count": len(body.split()),
         "token_estimate": outline.token_estimate(body),
         "summary": outline.summary_of(body),
+        # cheap retrieval anchors for AI agents: "## Heading" per section
+        "outline": [f"{'#' * h['level']} {h['text']}" for h in outline.headings(body)],
     }
 
 

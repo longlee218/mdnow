@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Protocol
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -30,14 +31,43 @@ class Fetcher(Protocol):
     def fetch(self, url: str) -> FetchResult: ...
 
 
-class StaticFetcher:
-    """httpx GET with timeout + a single retry."""
+def _cookie_jar(cookies: list[dict] | None, fallback_domain: str = "") -> httpx.Cookies | None:
+    """Build a domain/path-scoped jar so httpx only sends matching cookies.
 
-    def __init__(self, timeout: float = DEFAULT_TIMEOUT, user_agent: str = DEFAULT_UA):
+    A cookie without a domain is scoped to `fallback_domain` (the request
+    host): an empty-domain cookie would otherwise be sent to EVERY host,
+    leaking the session to a cross-host redirect (e.g. a 302 to an SSO host).
+    """
+    if not cookies:
+        return None
+    jar = httpx.Cookies()
+    for c in cookies:
+        jar.set(c["name"], c["value"],
+                domain=c.get("domain") or fallback_domain, path=c.get("path", "/"))
+    return jar
+
+
+class StaticFetcher:
+    """httpx GET with timeout + a single retry.
+
+    `headers`/`cookies` carry auth material for private/internal sites
+    (see auth.py). A user-supplied User-Agent header overrides the default.
+    """
+
+    def __init__(
+        self,
+        timeout: float = DEFAULT_TIMEOUT,
+        user_agent: str = DEFAULT_UA,
+        headers: dict[str, str] | None = None,
+        cookies: list[dict] | None = None,
+    ):
         self._timeout = timeout
-        self._ua = user_agent
+        self._headers = {"User-Agent": user_agent, **(headers or {})}
+        self._cookie_list = cookies
 
     def fetch(self, url: str) -> FetchResult:
+        # jar is built per-fetch so domain-less cookies scope to THIS host only
+        cookies = _cookie_jar(self._cookie_list, urlsplit(url).hostname or "")
         last_exc: Exception | None = None
         for _ in range(2):  # initial attempt + 1 retry (transient failures only)
             try:
@@ -45,7 +75,8 @@ class StaticFetcher:
                     url,
                     follow_redirects=True,
                     timeout=self._timeout,
-                    headers={"User-Agent": self._ua},
+                    headers=self._headers,
+                    cookies=cookies,
                 )
                 resp.raise_for_status()
                 return FetchResult(
@@ -71,10 +102,28 @@ class CamoufoxFetcher:
     lazily so static-only users never need it installed.
     """
 
-    def __init__(self, timeout: float = RENDER_TIMEOUT):
+    def __init__(
+        self,
+        timeout: float = RENDER_TIMEOUT,
+        headers: dict[str, str] | None = None,
+        cookies: list[dict] | None = None,
+    ):
         self._timeout_ms = int(timeout * 1000)
+        self._headers = headers or {}
+        self._cookies = cookies or []
         self._cm = None
         self._browser = None
+
+    def _cookies_for(self, url: str) -> list[dict]:
+        """Playwright cookies need either domain+path or a url to scope them."""
+        out = []
+        for c in self._cookies:
+            if c.get("domain"):
+                out.append({"name": c["name"], "value": c["value"],
+                            "domain": c["domain"], "path": c.get("path", "/")})
+            else:
+                out.append({"name": c["name"], "value": c["value"], "url": url})
+        return out
 
     def _ensure(self):
         if self._browser is None:
@@ -95,6 +144,10 @@ class CamoufoxFetcher:
         browser = self._ensure()
         page = browser.new_page()
         try:
+            if self._headers:
+                page.set_extra_http_headers(self._headers)
+            if self._cookies:
+                page.context.add_cookies(self._cookies_for(url))
             # domcontentloaded first (fast, and avoids a Firefox-driver crash that
             # `wait_until="load"` triggers on SPAs which throw uncaught JS errors),
             # then wait for network to settle so client-rendered content is in the

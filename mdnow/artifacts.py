@@ -52,6 +52,9 @@ def build_manifest(host: str, start_url: str, pages: list[dict]) -> str:
             "word_count": len(body.split()),
             "summary": outline.summary_of(body),
             "headings": outline.headings(body),
+            # heading-delimited chunk map (slug/level/word/token sizes) so an
+            # agent can pick a section before reading the local .md at all
+            "sections": outline.sections(body),
         })
     doc = {
         "host": host,
