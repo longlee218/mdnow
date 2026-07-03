@@ -13,13 +13,14 @@ input or when the quick cases in `SKILL.md` don't cover the request.
 | `http(s)://…` non-HTML (`.pdf`, `.xlsx`, …) | Remote file → markitdown convert |
 | `http(s)://…` YouTube (`youtu.be`, `youtube.com/watch`) | Transcript (needs `--allow-remote`) |
 | Local path (`./report.pdf`, `/abs/file.docx`) | Local file → markitdown convert |
+| Local directory (`./docs`, `/abs/dir`) | Folder → recursive batch convert + crawl-style artifacts |
 
 ## Flags
 
 | Flag | Meaning |
 |------|---------|
 | `-o, --out <dir>` | Output directory (default: current dir) |
-| `--crawl` | Crawl the whole site into a folder tree (web only) |
+| `--crawl` | Crawl the whole site into a folder tree (web only; errors on file/folder inputs) |
 | `--max-pages N` | Cap crawl at N pages (default 100) |
 | `--all` | Crawl every page (ignore `--max-pages`) |
 | `--render` | Force the Camoufox stealth browser (JS / anti-bot) |
@@ -43,6 +44,7 @@ Flags are additive on the single command; there are no subcommands. Utility flag
 | Private site (session cookie) | `mdnow <url> --cookie-file cookies.txt -o <dir>` |
 | JS-heavy / SPA / anti-bot page | `mdnow <url> --render -o <dir>` |
 | Local document | `mdnow ./report.pdf -o <dir>` |
+| Local folder (recursive batch) | `mdnow ./docs -o <dir>` |
 | Remote non-HTML file | `mdnow https://host/paper.pdf -o <dir>` |
 | Audio / video / YouTube | `mdnow <input> --allow-remote -o <dir>` |
 | Force fetch (skip llms.txt) | add `--no-llms` |
@@ -65,4 +67,9 @@ Flags are additive on the single command; there are no subcommands. Utility flag
   missing, render/SPA pages are skipped with a hint; static pages still convert.
 - **File conversion needs the `[docs]` extra** (markitdown). If missing, file inputs error
   with an install hint.
-- **`--crawl` is web-only** and errors on file inputs.
+- **`--crawl` is web-only** and errors on file and folder inputs.
+- **Folder input** converts every file recursively (needs `[docs]`), mirrors the source
+  tree under `-o`, and skips dotfiles/dotdirs (`.git`, `.DS_Store`, …). One unconvertible
+  file (e.g. audio without `--allow-remote`, an unsupported/corrupt file) is reported as
+  skipped and never aborts the batch. Always emits `manifest.json`/`llms.txt`/`llms-full.txt`
+  (like `--crawl`); fetch-tier flags (`--render`, `-H`, `--cookie-file`, `--no-llms`) don't apply.
