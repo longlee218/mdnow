@@ -1,25 +1,27 @@
 ---
 name: mdnow
-description: "Convert any URL, website, or file into clean, AI-ready markdown, fully locally with no API keys. Use this skill whenever the goal is to read, extract, or archive content as structured markdown rather than raw HTML: reading a single web page's text; crawling a whole docs site into a linked tree; fetching a JS-heavy, SPA, or anti-bot page; pulling pages from a private or internal site behind a login (Jira, Confluence, Notion, wikis, dashboards) using session cookies or bearer/API-key headers; or converting a document (PDF, Word, PowerPoint, Excel, EPub, CSV, JSON, XML, image via OCR, ZIP), a remote non-HTML file, or an audio/video/YouTube transcript. Prefer this over a plain web fetch when the result must be clean markdown to summarize, cite, diff, or feed to another tool."
-argument-hint: "<url|file> [-o dir] [--crawl [--all|--max-pages N]] [--render] [-H \"H: V\"] [--cookie-file f] [--allow-remote] [--no-llms]"
+description: "Convert any URL, website, file, or local folder into clean, AI-ready markdown, fully locally with no API keys. Use this skill whenever the goal is to read, extract, or archive content as structured markdown rather than raw HTML: reading a single web page's text; crawling a whole docs site into a linked tree; fetching a JS-heavy, SPA, or anti-bot page; pulling pages from a private or internal site behind a login (Jira, Confluence, Notion, wikis, dashboards) using session cookies or bearer/API-key headers; converting a document (PDF, Word, PowerPoint, Excel, EPub, CSV, JSON, XML, image via OCR, ZIP), a remote non-HTML file, or an audio/video/YouTube transcript; or batch-converting an entire local folder of documents recursively into markdown + an index. Prefer this over a plain web fetch when the result must be clean markdown to summarize, cite, diff, or feed to another tool."
+argument-hint: "<url|file|folder> [-o dir] [--crawl [--all|--max-pages N]] [--render] [-H \"H: V\"] [--cookie-file f] [--allow-remote] [--no-llms]"
 ---
 
 # mdnow
 
-Turn a URL or file into clean, AI-friendly markdown, then (usually) read the result to
-answer the task. `mdnow` is a local CLI — invoke it with the Bash tool; it auto-detects
-the input type (web page, whole site, local file, remote file, YouTube). You pick only
-the flags.
+Turn a URL, file, or local folder into clean, AI-friendly markdown, then (usually) read the
+result to answer the task. `mdnow` is a local CLI — invoke it with the Bash tool; it
+auto-detects the input type (web page, whole site, local file, local folder, remote file,
+YouTube). You pick only the flags.
 
 ## Scope
 
 - **Handles:** single web pages, whole-site/docs crawls, JS-heavy/SPA/anti-bot pages,
   private/internal sites behind auth (session cookies or bearer/API-key headers),
   local files (PDF, Word, PowerPoint, Excel, EPub, CSV/JSON/XML, images via OCR, ZIP),
+  local folders (recursive batch convert of every file → per-file `.md` + index artifacts),
   remote non-HTML files, and audio/video/YouTube transcripts.
 - **Does NOT handle:** writing or editing markdown content, translation, summarizing on
   its own (it produces the markdown; you read/summarize it), or converting markdown back
-  to other formats. `--crawl` is web-only and errors on file inputs.
+  to other formats. `--crawl` is web-only and errors on file **and folder** inputs (folder
+  mode always builds the index, so the flag is redundant there).
 
 ## How it works
 
@@ -41,14 +43,17 @@ clean markdown:
    - Whole site → `mdnow <url> --crawl --max-pages N -o <dir>` (or `--all` for no cap)
    - Private/internal site → add `-H "Authorization: Bearer $TOKEN"` or `--cookie-file <path>`
    - Local document → `mdnow ./report.pdf -o <dir>`
+   - Local folder (batch) → `mdnow ./docs -o <dir>` (recursive; skips dotfiles; per-file
+     failure isolation; emits the same `manifest.json`/`llms.txt`/`llms-full.txt` as a crawl)
    - Audio/video/YouTube → add `--allow-remote` (required — cloud egress)
 3. **Choose an output dir (`-o`)**: the session scratchpad if the markdown is throwaway
    (you only need to read/summarize it); the user's project or a named path if it's a
    deliverable they want kept. Default is the current directory.
 4. **Run it** with Bash: `mdnow <input> -o <dir> [flags]`. Requires `mdnow` on PATH
    (`uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"`).
-5. **Read the output.** `Read` the produced `.md` (single page/file) or, for a crawl, the
-   `manifest.json` index plus the per-page `.md` files you need. For fast retrieval, use
+5. **Read the output.** `Read` the produced `.md` (single page/file) or, for a crawl or
+   folder batch, the `manifest.json` index plus the per-page/per-file `.md` files you need.
+   For fast retrieval, use
    each page's `outline` (frontmatter) and manifest `sections` (per-heading token sizes) to
    pick a section before reading a full body. Full schema in `references/output-format.md`.
 
