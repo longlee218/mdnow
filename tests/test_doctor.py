@@ -92,8 +92,10 @@ def test_doctor_flag_exits_zero_and_prints_report(monkeypatch):
     monkeypatch.setattr(doctor, "run_checks", lambda: [doctor.Check("Python", True, "3.13.0")])
     res = runner.invoke(_app(), ["--doctor"])
     assert res.exit_code == 0
+    # --doctor renders a Rich table (render_report's [OK]/[MISSING] text format
+    # is still covered by the render_report tests above)
     assert "mdnow doctor" in res.stdout
-    assert "[OK] Python" in res.stdout
+    assert "Python" in res.stdout and "3.13.0" in res.stdout
 
 
 def test_doctor_flag_ignores_url_argument(monkeypatch):

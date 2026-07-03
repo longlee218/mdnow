@@ -124,6 +124,7 @@ def crawl_site(
     *,
     render: bool = False,
     renderer: Fetcher | None = None,
+    progress: Callable[[int, int, str], None] | None = None,
 ) -> tuple[int, int]:
     urls = discover_urls(start_url, max_pages, crawl_all, render=render, renderer=renderer)
     echo(f"Discovered {len(urls)} page(s). Fetching...")
@@ -136,7 +137,8 @@ def crawl_site(
     failures: list[tuple[str, str]] = []
     escalated = 0
     render_dead = False  # set once if camoufox is unavailable → stop retrying
-    for u in urls:
+    total = len(urls)
+    for i, u in enumerate(urls, 1):
         limiter.wait()
         try:
             page = _fetch_one(fetcher, u)
@@ -154,6 +156,9 @@ def crawl_site(
                     echo("  note: install mdnow[render] to auto-recover JS-heavy pages")
             except ValueError:
                 pass  # rendered but still no content → genuine empty page
+
+        if progress is not None:
+            progress(i, total, urlsplit(u).path or "/")
 
         if page is None:
             failures.append((u, reason))

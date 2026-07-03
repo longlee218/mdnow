@@ -1,5 +1,14 @@
 # Project Changelog
 
+## [2026-07-03] — CLI UI enhancement
+
+**Changed:**
+- **Rich-powered CLI output** — All console output now flows through a new `mdnow/ui.py` seam built on [Rich](https://github.com/Textualize/rich) (added as a base dependency). Single-page fetch/convert shows a spinner; `--crawl` shows a live progress bar; `--doctor` renders a colored status table; success lines gain token estimates; errors and actionable next-step hints (e.g. "Read it: …", "Start with manifest.json") are color-coded. Output auto-degrades to plain text on a non-tty / `NO_COLOR`, so scripts and pipes are unaffected. No CLI flags or behavior changed — presentation only.
+
+**Tests:** 141 tests passing.
+
+---
+
 ## [2026-07-03] — AI output & private-site features
 
 **New features:**

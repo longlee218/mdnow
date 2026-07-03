@@ -384,6 +384,7 @@ Crawl mode also writes three artifacts:
 - **Crawl** — discovers via `sitemap.xml` first, falls back to BFS; respects `robots.txt`, rate-limits, isolates per-page failures.
 - **JS-rendered SPAs** (React/Angular docs, etc.) — auto-escalate in crawl mode: if static discovery finds no links, the start page is rendered; thin pages auto-render. Requires `[render]` + `mdnow --fetch-browser`.
 - **Cloudflare / anti-bot** — `--render` bypass is best-effort.
+- **Terminal output** — colored status, a spinner while fetching, and a live progress bar for `--crawl`, plus actionable next-step hints. Auto-degrades to plain text when piped or on a non-tty / `NO_COLOR`, so scripts are unaffected.
 
 ---
 

@@ -384,6 +384,7 @@ Chế độ crawl còn ghi thêm ba tệp:
 - **Crawl** — tìm qua `sitemap.xml` trước, quay về BFS; tôn trọng `robots.txt`, giới hạn tốc độ, cô lập lỗi từng trang.
 - **SPA render bằng JS** (tài liệu React/Angular, v.v.) — tự nâng cấp trong chế độ crawl: nếu discovery tĩnh không thấy link, trang gốc được render; trang mỏng tự render. Cần `[render]` + `mdnow --fetch-browser`.
 - **Cloudflare / anti-bot** — vượt qua bằng `--render` là nỗ lực tốt nhất có thể (best-effort).
+- **Output terminal** — trạng thái có màu, spinner khi fetch, progress bar trực tiếp cho `--crawl`, kèm gợi ý bước tiếp theo. Tự động chuyển về text thuần khi pipe hoặc trên non-tty / `NO_COLOR`, nên script không bị ảnh hưởng.
 
 ---
 

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import typer
 
-from . import convert, quality
+from . import convert, outline, quality, ui
 from .extractor import Extracted, extract, is_html
 from .fetcher import CamoufoxFetcher, FetchResult, StaticFetcher
 from .slugs import file_slug, slug
@@ -86,10 +86,13 @@ def _write_extracted(out: Path, page_slug: str, source_url: str, extracted: Extr
         fetched_date=date.today().isoformat(),
         body=extracted.markdown,
     )
-    typer.echo(
-        f"{outcome.status}: {outcome.path} "
-        f"(v{outcome.version}, {extracted.word_count} words)"
+    ui.success(
+        outcome.status, str(outcome.path),
+        f"v{outcome.version}, {extracted.word_count} words, "
+        f"~{outline.token_estimate(extracted.markdown)} tokens",
     )
+    if outcome.status != "unchanged":
+        ui.hint(f"Read it: {outcome.path}")
 
 
 def _convert_single(
@@ -100,11 +103,13 @@ def _convert_single(
     headers: dict | None = None,
     cookies: list[dict] | None = None,
 ) -> None:
-    typer.echo(f"{'Rendering' if render else 'Fetching'} {url} ...")
+    action = "Rendering" if render else "Fetching"
+    ui.step(action, url)
     try:
-        result, extracted = _acquire(url, render, allow_remote, headers=headers, cookies=cookies)
+        with ui.status(f"{action} {url}"):
+            result, extracted = _acquire(url, render, allow_remote, headers=headers, cookies=cookies)
     except (RuntimeError, ValueError) as exc:
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        ui.error(str(exc))
         raise typer.Exit(1)
     _write_extracted(out, slug(extracted.title, result.url), result.url, extracted)
 
@@ -116,21 +121,22 @@ def _convert_file_to_extracted(path: Path, allow_remote: bool) -> Extracted:
 
 def _convert_file(path: Path, out: Path, allow_remote: bool) -> None:
     """Convert a local file to markdown via markitdown, then write it."""
-    typer.echo(f"Converting {path} ...")
+    ui.step("Converting", str(path))
     try:
         extracted = _convert_file_to_extracted(path, allow_remote)
     except (RuntimeError, ValueError) as exc:
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        ui.error(str(exc))
         raise typer.Exit(1)
     _write_extracted(out, file_slug(path), str(path), extracted)
 
 
 def _convert_youtube(url: str, out: Path, allow_remote: bool) -> None:
     """Convert a YouTube URL (transcript) via markitdown, then write it."""
-    typer.echo(f"Converting (YouTube) {url} ...")
+    ui.step("Converting (YouTube)", url)
     try:
-        extracted = convert.from_url(url, allow_remote=allow_remote)
+        with ui.status(f"Transcribing {url}"):
+            extracted = convert.from_url(url, allow_remote=allow_remote)
     except (RuntimeError, ValueError) as exc:
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        ui.error(str(exc))
         raise typer.Exit(1)
     _write_extracted(out, slug(extracted.title, url), url, extracted)

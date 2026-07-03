@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 
 import typer
 
-from . import auth, commands, doctor
+from . import auth, commands, doctor, ui
 from .crawler import crawl_site
 from .discovery import discover
 from .inputs import is_local_file, is_youtube
@@ -59,14 +59,14 @@ def main(
 ) -> None:
     """Fetch URL → clean markdown. Single page, or --crawl for a whole-site tree."""
     if run_doctor:
-        typer.echo(doctor.render_report(doctor.run_checks()))
+        ui.doctor_report(doctor.run_checks())
         return
 
     if update:
         try:
             commands.self_update()
         except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-            typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+            ui.error(str(exc))
             raise typer.Exit(1) from exc
         return
 
@@ -74,22 +74,22 @@ def main(
         try:
             commands.fetch_browser()
         except (RuntimeError, FileNotFoundError) as exc:
-            typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+            ui.error(str(exc))
             raise typer.Exit(1) from exc
-        typer.echo("Camoufox browser downloaded.")
+        ui.success("downloaded", "Camoufox browser", "ready for --render")
         return
 
     if install_skill:
         try:
             dest = commands.install_skill(skill_dir, force)
         except (FileNotFoundError, FileExistsError) as exc:
-            typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+            ui.error(str(exc))
             raise typer.Exit(1) from exc
-        typer.echo(f"Installed skill to {dest}")
+        ui.success("installed", f"skill to {dest}", "usable by Claude")
         return
 
     if not url:
-        typer.secho("Error: URL or file path is required.", fg=typer.colors.RED, err=True)
+        ui.error("URL or file path is required.")
         raise typer.Exit(1)
 
     # Auth material for private/internal sites. Parsed once; values are secrets
@@ -98,18 +98,14 @@ def main(
         headers = auth.parse_headers(header or [])
         cookies = auth.load_cookies(cookie_file) if cookie_file else None
     except (ValueError, OSError) as exc:
-        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        ui.error(str(exc))
         raise typer.Exit(1) from exc
 
     # Input-type fork: a local file path is converted directly (markitdown),
     # skipping the whole URL funnel (discovery/fetch/crawl don't apply to files).
     if is_local_file(url):
         if crawl:
-            typer.secho(
-                "Error: --crawl is not valid for a local file (single file only).",
-                fg=typer.colors.RED,
-                err=True,
-            )
+            ui.error("--crawl is not valid for a local file (single file only).")
             raise typer.Exit(1)
         _convert_file(Path(url), out, allow_remote)
         return
@@ -138,10 +134,11 @@ def main(
                 fetched_date=date.today().isoformat(),
                 body=found.content,
             )
-            typer.echo(
-                f"discovery: {outcome.status} {outcome.path} "
-                f"(v{outcome.version}, from {found.source_url})"
+            ui.success(
+                f"discovery: {outcome.status}", str(outcome.path),
+                f"v{outcome.version}, from {found.source_url}",
             )
+            ui.hint(f"Read it: {outcome.path}")
             return
 
     if crawl:
@@ -155,15 +152,17 @@ def main(
             primary = StaticFetcher(headers=headers, cookies=cookies)
             renderer = CamoufoxFetcher(headers=headers, cookies=cookies)
         try:
-            typer.echo(f"Crawling {url} ...")
-            ok, failed = crawl_site(
-                url, out, max_pages, crawl_all, primary, typer.echo,
-                render=render, renderer=renderer,
-            )
+            ui.step("Crawling", url)
+            with ui.progress_bar() as advance:
+                ok, failed = crawl_site(
+                    url, out, max_pages, crawl_all, primary, ui.note,
+                    render=render, renderer=renderer, progress=advance,
+                )
         finally:
             for f in {primary, renderer}:  # set() dedupes the --render case
                 getattr(f, "close", lambda: None)()
-        typer.echo(f"Done: {ok} page(s) written, {failed} failed → {out}")
+        ui.crawl_summary(ok, failed, str(out))
+        ui.hint(f"Start with {out / 'manifest.json'} (index), then open the pages you need")
         return
 
     _convert_single(url, out, render, allow_remote, headers=headers, cookies=cookies)
