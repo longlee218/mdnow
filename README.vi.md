@@ -2,7 +2,7 @@
 
 [English](README.md) · [Tiếng Việt](README.vi.md)
 
-<img src="https://raw.githubusercontent.com/longlee218/mdnow/main/assets/banner.png" alt="mdnow — biến mọi thứ thành Markdown" width="640">
+<img src="https://raw.githubusercontent.com/longlee218/mdnow/main/assets/banner-2.png" alt="mdnow — biến mọi thứ thành Markdown" width="640">
 
 # mdnow
 
@@ -310,7 +310,7 @@ mdnow https://api.example.com -H "Authorization: Bearer $TOKEN" -H "X-API-Key: $
 | `--render`        | Dùng trình duyệt stealth Camoufox (site JS/anti-bot); cần `[render]`            |
 | `--no-llms`       | Bỏ qua discovery `llms.txt`; ép fetch/crawl                                     |
 | `--allow-remote`  | Cho phép API cloud: phiên âm âm thanh/video, YouTube (gửi dữ liệu ra, tùy chọn) |
-| `-H, --header`    | Thêm HTTP header (có thể lặp); ví dụ: `-H "Authorization: Bearer $TOKEN"`      |
+| `-H, --header`    | Thêm HTTP header (có thể lặp); ví dụ: `-H "Authorization: Bearer $TOKEN"`       |
 | `--cookie-file`   | Đường dẫn tới tệp cookies Netscape hoặc JSON để xác thực                        |
 | `--doctor`        | Báo cáo extras đã cài/còn thiếu (kèm cách khắc phục) rồi thoát                  |
 | `--fetch-browser` | Tải trình duyệt Camoufox cho `--render` rồi thoát                               |

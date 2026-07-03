@@ -2,7 +2,7 @@
 
 [English](README.md) · [Tiếng Việt](README.vi.md)
 
-<img src="https://raw.githubusercontent.com/longlee218/mdnow/main/assets/banner.png" alt="mdnow — turn anything into Markdown" width="640">
+<img src="https://raw.githubusercontent.com/longlee218/mdnow/main/assets/banner-2.png" alt="mdnow — turn anything into Markdown" width="640">
 
 # mdnow
 
@@ -301,21 +301,21 @@ mdnow https://api.example.com -H "Authorization: Bearer $TOKEN" -H "X-API-Key: $
 
 ### Flags
 
-| Flag              | Meaning                                                              |
-| ----------------- | -------------------------------------------------------------------- |
-| `-o, --out`       | Output directory (default `.`)                                       |
-| `--crawl`         | Crawl the whole site into a tree (websites only)                     |
-| `--max-pages N`   | Max pages to crawl (default 100)                                     |
-| `--all`           | Crawl all pages (ignore `--max-pages`)                               |
-| `--render`        | Use the Camoufox stealth browser (JS/anti-bot); requires `[render]`  |
-| `--no-llms`       | Skip `llms.txt` discovery; force fetch/crawl                         |
-| `--allow-remote`  | Allow cloud APIs: audio/video transcription, YouTube (opt-in egress) |
+| Flag              | Meaning                                                                |
+| ----------------- | ---------------------------------------------------------------------- |
+| `-o, --out`       | Output directory (default `.`)                                         |
+| `--crawl`         | Crawl the whole site into a tree (websites only)                       |
+| `--max-pages N`   | Max pages to crawl (default 100)                                       |
+| `--all`           | Crawl all pages (ignore `--max-pages`)                                 |
+| `--render`        | Use the Camoufox stealth browser (JS/anti-bot); requires `[render]`    |
+| `--no-llms`       | Skip `llms.txt` discovery; force fetch/crawl                           |
+| `--allow-remote`  | Allow cloud APIs: audio/video transcription, YouTube (opt-in egress)   |
 | `-H, --header`    | Add HTTP header (repeatable); e.g. `-H "Authorization: Bearer $TOKEN"` |
-| `--cookie-file`   | Path to Netscape cookies.txt or JSON cookies list for authentication |
-| `--doctor`        | Report installed/missing extras (and how to fix) and exit            |
-| `--fetch-browser` | Download the Camoufox browser for `--render` and exit                |
-| `--install-skill` | Install the bundled Claude Code skill to `~/.claude/skills/mdnow`    |
-| `--update`        | Upgrade mdnow to the latest version from git                         |
+| `--cookie-file`   | Path to Netscape cookies.txt or JSON cookies list for authentication   |
+| `--doctor`        | Report installed/missing extras (and how to fix) and exit              |
+| `--fetch-browser` | Download the Camoufox browser for `--render` and exit                  |
+| `--install-skill` | Install the bundled Claude Code skill to `~/.claude/skills/mdnow`      |
+| `--update`        | Upgrade mdnow to the latest version from git                           |
 
 ---
 
