@@ -180,7 +180,22 @@ Lệnh này chạy `uv tool install --force "mdnow[<extras>] @ git+https://githu
 
 ### Windows
 
-Dùng **PowerShell** (không có một-dòng-lệnh shell). Cài uv hoặc pipx trước, rồi:
+**Một dòng lệnh PowerShell**:
+
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
+```
+
+Với cờ (lưu trước, rồi chạy):
+
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o install.ps1
+.\install.ps1 -Render -Docs -Mcp
+# hoặc tất cả cùng lúc:
+.\install.ps1 -All -Skill
+```
+
+Hoặc cài uv / pipx thủ công:
 
 ```powershell
 uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"

@@ -180,7 +180,22 @@ This runs `uv tool install --force "mdnow[<extras>] @ git+https://github.com/lon
 
 ### Windows
 
-Use **PowerShell** (no shell one-liner). Install uv or pipx first, then:
+**PowerShell one-liner**:
+
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
+```
+
+With flags (save first, then run):
+
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o install.ps1
+.\install.ps1 -Render -Docs -Mcp
+# or everything at once:
+.\install.ps1 -All -Skill
+```
+
+Or install uv / pipx manually:
 
 ```powershell
 uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"

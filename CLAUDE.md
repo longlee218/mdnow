@@ -49,6 +49,9 @@ pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
 
 # One-liner install (macOS / Linux)
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
+
+# One-liner install (Windows)
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
 ```
 
 Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is callable. Tests are network-free (httpx is monkeypatched, `CamoufoxFetcher` is not unit-tested — it needs a real browser and is integration-tested live).
@@ -107,9 +110,10 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 1. **Shell one-liner** (macOS/Linux): `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh [--render] [--docs] [--mcp] [--all] [--skill]`
    - `install.sh` ensures `uv` is installed, then `uv tool install "mdnow[extras] @ git+<repo>"`, downloads browser if `--render`, installs skill if `--skill`.
    - Raw-URL branch is `main`.
-2. **uv** (recommended, cross-platform): `uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`
-3. **pipx**: `pipx install "git+https://github.com/longlee218/mdnow"`
-4. **Windows:** PowerShell users follow the `uv tool install "... @ git+<repo>"` path (no dedicated .ps1).
+2. **PowerShell one-liner** (Windows): `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex`, or save the script and run `.\install.ps1 [-Render] [-Docs] [-Mcp] [-All] [-Skill]`.
+   - `install.ps1` ensures `uv` is installed, then `uv tool install --force "mdnow[extras] @ git+<repo>"`, downloads browser if `-Render`, installs skill if `-Skill`.
+3. **uv** (recommended, cross-platform): `uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`
+4. **pipx**: `pipx install "git+https://github.com/longlee218/mdnow"`
 
 `pyproject.toml` still carries valid package metadata (name, classifiers, `[project.urls]`) so the git install builds cleanly, but there is no CI/publish workflow and PyPI is intentionally not used.
 
