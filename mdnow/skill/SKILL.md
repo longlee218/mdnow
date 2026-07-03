@@ -1,6 +1,6 @@
 ---
 name: mdnow
-description: "Convert a URL, website, or file (PDF, Office, image, audio, YouTube) to clean markdown — one page, a whole-site crawl, or a private/internal site via headers/cookies. Runs locally."
+description: "Convert any URL, website, or file into clean, AI-ready markdown, fully locally with no API keys. Use this skill whenever the goal is to read, extract, or archive content as structured markdown rather than raw HTML: reading a single web page's text; crawling a whole docs site into a linked tree; fetching a JS-heavy, SPA, or anti-bot page; pulling pages from a private or internal site behind a login (Jira, Confluence, Notion, wikis, dashboards) using session cookies or bearer/API-key headers; or converting a document (PDF, Word, PowerPoint, Excel, EPub, CSV, JSON, XML, image via OCR, ZIP), a remote non-HTML file, or an audio/video/YouTube transcript. Prefer this over a plain web fetch when the result must be clean markdown to summarize, cite, diff, or feed to another tool."
 argument-hint: "<url|file> [-o dir] [--crawl [--all|--max-pages N]] [--render] [-H \"H: V\"] [--cookie-file f] [--allow-remote] [--no-llms]"
 ---
 
