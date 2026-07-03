@@ -13,10 +13,10 @@ from urllib.parse import urlparse
 
 import typer
 
-from . import auth, commands, doctor, ui
+from . import auth, commands, doctor, folder, ui
 from .crawler import crawl_site
 from .discovery import discover
-from .inputs import is_local_file, is_youtube
+from .inputs import is_local_dir, is_local_file, is_youtube
 from .runner import _convert_file, _convert_single, _convert_youtube, _write_extracted
 from .slugs import slug
 from .writer import write
@@ -108,6 +108,20 @@ def main(
             ui.error("--crawl is not valid for a local file (single file only).")
             raise typer.Exit(1)
         _convert_file(Path(url), out, allow_remote)
+        return
+
+    # Local directory → recursive batch convert (markitdown per file) + crawl-style
+    # artifacts. Also a local-path fork, so it lives beside the file branch.
+    if is_local_dir(url):
+        if crawl:
+            ui.error("--crawl is not valid for a local folder (folder mode always builds an index).")
+            raise typer.Exit(1)
+        out.mkdir(parents=True, exist_ok=True)
+        ui.step("Converting", str(url))
+        with ui.progress_bar("converting") as advance:
+            ok, failed = folder.convert_folder(Path(url), out, allow_remote, ui.note, progress=advance)
+        ui.folder_summary(ok, failed, str(out))
+        ui.hint(f"Start with {out / 'manifest.json'} (index), then open the files you need")
         return
 
     # YouTube URLs go to markitdown's transcript converter (network egress).

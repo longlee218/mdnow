@@ -26,8 +26,8 @@ The bundled skill at `mdnow/skill/` teaches *other AIs* how to drive the CLI —
 # Dev install (editable, into a local venv; include [docs] for file conversion)
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs]"
 
-# Run from the venv (auto-detects input type: URL, local file, or YouTube)
-.venv/bin/mdnow <url|file> [-o out/] [--crawl] [--render] [--no-llms] [--allow-remote] [--max-pages N] [--all]
+# Run from the venv (auto-detects input type: URL, local file, local folder, or YouTube)
+.venv/bin/mdnow <url|file|folder> [-o out/] [--crawl] [--render] [--no-llms] [--allow-remote] [--max-pages N] [--all]
 
 # Private/internal sites: inject auth into both fetch tiers
 .venv/bin/mdnow <url> -H "Authorization: Bearer $TOKEN" --cookie-file cookies.txt
@@ -68,6 +68,7 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 **Input-type fork at CLI entry.** `cli.main` branches first:
 - **`--update`** → `commands.self_update()` (detects installed extras, runs `uv tool install --force` from git, or prints a manual-install hint if uv is missing).
+- **Local folder** → `folder.convert_folder()` (recursively batch-converts files, mirrors `crawler.py` two-pass pattern: convert-all with per-file isolation → map paths → write + emit artifacts).
 - **Local file** → `convert.from_path()` (markitdown), skipping the entire URL funnel.
 - **YouTube URL** → `convert.from_url()` (markitdown transcript, requires `--allow-remote`).
 - **Other URL** → cheapest-path-first website funnel (below).
@@ -102,6 +103,8 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 **Crawl artifacts** (`artifacts.py` in crawl mode only): emits `llms.txt` (llmstxt.org-shaped index), `llms-full.txt` (full concatenated markdown), and `manifest.json` (machine-readable metadata). These replace the old `tree.py` index-building role — keep artifact emission alongside per-page writes.
 
+**Folder batch conversion** (`folder.py`, mirrors `crawler.py`): two-pass over a local directory tree — convert-all files with per-file error isolation (one failure never aborts), *then* build the path map, *then* write + emit artifacts. Reuses `artifacts.py` (`build_llms_txt`/`build_llms_full`/`build_manifest`) unchanged. Path mapping uses `slugs.file_slug` (extension-stripped, same as single-file mode) plus sha1[:6] for leaf-name collisions — does NOT use `urls.build_path_map` (URL-only, would keep extension as slug suffix). UI routes through the seam like crawl (`folder_summary` in `ui.py`, progress bar with verb="converting").
+
 **`canonical()` (`urls.py`) is the single source of URL identity** — used by both dedup and the path map, so a URL always resolves identically everywhere. If you touch URL normalization, change it only here.
 
 **Link rewriting contract** (`linkrewrite.py`): internal+crawled → relative local `.md`; internal-but-not-crawled → left absolute (never emit broken local links); external → untouched.
@@ -113,7 +116,7 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 ## Conventions specific to this repo
 
 - Every module stays **< 200 lines**, one responsibility. Many small files > few large ones.
-- New CLI capabilities are **flags on the single command** (`cli.main`), not subcommands — the command is `mdnow <url|file> [flags]`.
+- New CLI capabilities are **flags on the single command** (`cli.main`), not subcommands — the command is `mdnow <url|file|folder> [flags]`.
 - `camoufox` and `markitdown` are **optional** dependencies (`[render]` and `[docs]` extras), imported lazily so base-install users never need them.
 - Founding constraint: **fully local, no API keys, no data egress by default.** Audio/video transcription and YouTube egress are opt-in via `--allow-remote`. Never use LLM/Azure client keys.
 

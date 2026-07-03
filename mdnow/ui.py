@@ -59,12 +59,21 @@ def error(msg: str) -> None:
     _line(_err, Text.assemble(("Error: ", "err"), msg))
 
 
-def crawl_summary(ok: int, failed: int, out: str) -> None:
+def _done_summary(ok: int, failed: int, out: str, unit: str) -> None:
+    """Colored 'Done:' line shared by crawl and folder batch modes."""
     mark, style = ("✓", "ok") if failed == 0 else ("!", "warn")
     _line(_out, Text.assemble(
-        (f"{mark} Done: ", style), f"{ok} page(s) written, {failed} failed ",
+        (f"{mark} Done: ", style), f"{ok} {unit}, {failed} failed ",
         ("→ ", "muted"), (out, "muted"),
     ))
+
+
+def crawl_summary(ok: int, failed: int, out: str) -> None:
+    _done_summary(ok, failed, out, "page(s) written")
+
+
+def folder_summary(ok: int, failed: int, out: str) -> None:
+    _done_summary(ok, failed, out, "file(s) converted")
 
 
 def doctor_report(checks: list) -> None:
@@ -93,12 +102,13 @@ def status(message: str) -> Iterator[None]:
 
 
 @contextmanager
-def progress_bar() -> Iterator[Callable[[int, int, str], None]]:
-    """Crawl progress. Yields advance(done, total, label); the task is created
-    lazily on the first call so the total (known only after discovery) is set
-    correctly. Renders nothing extra on a non-tty."""
+def progress_bar(verb: str = "crawling") -> Iterator[Callable[[int, int, str], None]]:
+    """Batch progress (crawl or folder). Yields advance(done, total, label); the
+    task is created lazily on the first call so the total (known only after
+    discovery) is set correctly. Renders nothing extra on a non-tty. `verb` is a
+    controlled internal literal (e.g. 'converting') — safe inside markup."""
     prog = Progress(
-        TextColumn("[muted]crawling[/muted]"),
+        TextColumn(f"[muted]{verb}[/muted]"),
         BarColumn(),
         MofNCompleteColumn(),
         # markup=False: the description is a URL path (e.g. '/docs/[slug]');

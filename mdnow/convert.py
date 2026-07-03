@@ -93,8 +93,18 @@ def _result_to_extracted(result, where: str) -> Extracted:
 
 def from_path(path: Path, *, allow_remote: bool = False) -> Extracted:
     """Convert a local file to markdown. Raises ValueError if nothing usable."""
-    _guard_audio(path.suffix.lower(), "", allow_remote)
-    return _result_to_extracted(_markitdown().convert(str(path)), str(path))
+    _guard_audio(path.suffix.lower(), "", allow_remote)  # RemoteBlocked before markitdown
+    md = _markitdown()  # RuntimeError if [docs] missing
+    from markitdown import MarkItDownException  # safe: import above already succeeded
+
+    try:
+        result = md.convert(str(path))
+    except MarkItDownException as exc:
+        # UnsupportedFormat/FileConversion don't subclass RuntimeError/ValueError;
+        # normalize so callers' (RuntimeError, ValueError) handling works — a
+        # clean error for single files, a per-file skip in folder batch mode.
+        raise ValueError(f"cannot convert {path.name}: {exc}") from exc
+    return _result_to_extracted(result, str(path))
 
 
 def from_bytes(data: bytes, url: str, content_type: str, *, allow_remote: bool = False) -> Extracted:
