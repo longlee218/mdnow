@@ -7,6 +7,7 @@ funnel. Flags (--crawl, --render, --no-llms, --allow-remote) tune the run.
 from __future__ import annotations
 
 from datetime import date
+import os
 from pathlib import Path
 import subprocess
 from urllib.parse import urlparse
@@ -183,7 +184,21 @@ def main(
 
 
 def run() -> None:
-    typer.run(main)
+    """Entry point with a global safety net.
+
+    Action helpers already turn expected failures into a clean ui.error + exit.
+    This backstop catches anything unforeseen so the CLI never dumps a Python
+    traceback at the user; set MDNOW_DEBUG=1 to restore tracebacks for dev.
+    """
+    try:
+        typer.run(main)
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except Exception as exc:  # noqa: BLE001 — deliberate top-level backstop
+        if os.environ.get("MDNOW_DEBUG"):
+            raise
+        ui.error(str(exc) or exc.__class__.__name__)
+        raise SystemExit(1) from exc
 
 
 if __name__ == "__main__":

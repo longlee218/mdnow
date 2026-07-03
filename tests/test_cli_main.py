@@ -1,5 +1,6 @@
 import mdnow.convert as convert
 import mdnow.runner as run
+import mdnow.youtube as youtube
 import typer
 from typer.testing import CliRunner
 
@@ -159,10 +160,10 @@ def test_local_file_with_crawl_errors(tmp_path):
     assert res.exit_code == 1
 
 
-def test_youtube_routes_to_from_url_with_allow_remote(tmp_path, monkeypatch):
+def test_youtube_routes_to_transcript_with_allow_remote(tmp_path, monkeypatch):
     _no_discover(monkeypatch)
     monkeypatch.setattr(
-        convert, "from_url",
+        youtube, "convert",
         lambda url, *, allow_remote=False: Extracted("transcript text", "Vid", None),
     )
     res = runner.invoke(_app(), ["https://youtu.be/abc", "--allow-remote", "-o", str(tmp_path)])
@@ -173,6 +174,27 @@ def test_youtube_routes_to_from_url_with_allow_remote(tmp_path, monkeypatch):
 def test_youtube_refused_without_allow_remote(tmp_path):
     res = runner.invoke(_app(), ["https://youtu.be/abc", "-o", str(tmp_path)])
     assert res.exit_code == 1
+
+
+def test_run_safety_net_turns_unexpected_exception_into_clean_exit(monkeypatch):
+    """An unforeseen exception must exit(1) via ui.error, never a raw traceback."""
+    import pytest
+    monkeypatch.delenv("MDNOW_DEBUG", raising=False)
+    monkeypatch.setattr(cli.typer, "run", lambda fn: (_ for _ in ()).throw(Exception("kaboom")))
+    seen = []
+    monkeypatch.setattr(cli.ui, "error", lambda msg: seen.append(msg))
+    with pytest.raises(SystemExit) as exc:
+        cli.run()
+    assert exc.value.code == 1
+    assert seen == ["kaboom"]
+
+
+def test_run_safety_net_reraises_under_mdnow_debug(monkeypatch):
+    import pytest
+    monkeypatch.setenv("MDNOW_DEBUG", "1")
+    monkeypatch.setattr(cli.typer, "run", lambda fn: (_ for _ in ()).throw(Exception("kaboom")))
+    with pytest.raises(Exception, match="kaboom"):
+        cli.run()
 
 
 def test_acquire_nonhtml_remoteblocked_surfaces(monkeypatch):

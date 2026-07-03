@@ -261,7 +261,7 @@ mdnow ./talk.m4a --allow-remote -o out/ # audio transcription (needs [docs] + --
 
 ```bash
 mdnow https://example.com/paper.pdf -o out/
-mdnow "https://youtu.be/watch?v=abc123" --allow-remote -o out/   # YouTube transcript (cloud egress)
+mdnow "https://www.youtube.com/watch?v=abc123" --allow-remote -o out/  # YouTube transcript, timestamped (cloud egress)
 ```
 
 ### Folder: batch convert local directory
@@ -397,6 +397,8 @@ Crawl mode also writes three artifacts:
 - **Images** — stripped but alt-text preserved (HTML); or OCR-extracted (image files, `[docs]`).
 - **Files** — local/remote non-HTML auto-detected and converted via markitdown (PDF, Word, PowerPoint, Excel, EPub, images, CSV/JSON/XML, ZIP).
 - **Audio/video & YouTube** — require `--allow-remote` (cloud transcription). Without it, they error clearly.
+- **YouTube transcripts** — grouped into coarse (~45s) paragraphs, each prefixed with a `[mm:ss]` timestamp that deep-links back to that moment in the video. YouTube commonly rate-limits or blocks transcript requests from cloud/VPN/datacenter IPs; when that happens you get a short, actionable message (not a stack trace) — wait a few minutes and retry.
+- **Errors** — every failure prints a single clean `Error: …` line and exits non-zero; the CLI never dumps a Python traceback. Set `MDNOW_DEBUG=1` to restore full tracebacks when debugging.
 - **Folders** — recursively convert every file, preserving subfolder structure; dotfiles/dotdirs skipped; per-file failures isolated (one failure doesn't abort the run); emits crawl-style artifacts (`llms.txt`, `llms-full.txt`, `manifest.json`).
 - **`--crawl`** — invalid for file / folder inputs (single page fetch or batch folder only); errors clearly.
 - **Crawl** — discovers via `sitemap.xml` first, falls back to BFS; respects `robots.txt`, rate-limits, isolates per-page failures.

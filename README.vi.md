@@ -261,7 +261,7 @@ mdnow ./talk.m4a --allow-remote -o out/ # phiên âm âm thanh (cần [docs] + -
 
 ```bash
 mdnow https://example.com/paper.pdf -o out/
-mdnow "https://youtu.be/watch?v=abc123" --allow-remote -o out/   # transcript YouTube (gửi ra cloud)
+mdnow "https://www.youtube.com/watch?v=abc123" --allow-remote -o out/  # transcript YouTube, có mốc thời gian (gửi ra cloud)
 ```
 
 ### Thư mục: chuyển đổi hàng loạt thư mục cục bộ
@@ -397,6 +397,8 @@ Chế độ crawl còn ghi thêm ba tệp:
 - **Ảnh** — bị loại bỏ nhưng giữ lại alt-text (HTML); hoặc trích bằng OCR (tệp ảnh, `[docs]`).
 - **Tệp** — non-HTML cục bộ/từ xa được tự nhận diện và chuyển đổi qua markitdown (PDF, Word, PowerPoint, Excel, EPub, ảnh, CSV/JSON/XML, ZIP).
 - **Âm thanh/video & YouTube** — cần `--allow-remote` (phiên âm qua cloud). Không có nó, sẽ báo lỗi rõ ràng.
+- **Transcript YouTube** — được gom thành các đoạn thô (~45 giây), mỗi đoạn có tiền tố mốc thời gian `[mm:ss]` liên kết sâu (deep-link) về đúng thời điểm đó trong video. YouTube thường giới hạn tần suất hoặc chặn yêu cầu transcript từ IP cloud/VPN/trung tâm dữ liệu; khi bị chặn, bạn nhận được một thông báo ngắn gọn, rõ ràng (không phải stack trace) — hãy chờ vài phút rồi thử lại.
+- **Lỗi** — mọi lỗi đều in một dòng `Error: …` gọn gàng và thoát với mã khác 0; CLI không bao giờ đổ (dump) traceback Python. Đặt `MDNOW_DEBUG=1` để khôi phục traceback đầy đủ khi cần gỡ lỗi.
 - **Thư mục** — chuyển đổi tất cả tệp trong thư mục, bảo toàn cấu trúc thư mục con; dotfiles/dotdirs bị bỏ qua; cô lập lỗi từng tệp (một lỗi không làm dừng lệnh); phát hành các tệp artifacts kiểu crawl (`llms.txt`, `llms-full.txt`, `manifest.json`).
 - **`--crawl`** — không hợp lệ cho đầu vào là tệp / thư mục (chỉ fetch trang đơn hoặc thư mục hàng loạt); báo lỗi rõ ràng.
 - **Crawl** — tìm qua `sitemap.xml` trước, quay về BFS; tôn trọng `robots.txt`, giới hạn tốc độ, cô lập lỗi từng trang.

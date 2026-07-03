@@ -5,9 +5,9 @@ static-only users never need it installed — mirrors fetcher.CamoufoxFetcher.
 Its `(markdown, title)` result maps onto the existing Extracted dataclass, so
 the whole writer/frontmatter path is reused unchanged.
 
-Network egress: markitdown's audio-transcription and YouTube converters call
-cloud APIs. Those are gated behind `allow_remote` — refused with RemoteBlocked
-otherwise — so MDNow stays fully local by default.
+Network egress: markitdown's audio-transcription converter calls a cloud API.
+That is gated behind `allow_remote` — refused with RemoteBlocked otherwise — so
+MDNow stays fully local by default. (YouTube transcripts live in youtube.py.)
 """
 from __future__ import annotations
 
@@ -114,20 +114,14 @@ def from_bytes(data: bytes, url: str, content_type: str, *, allow_remote: bool =
     md = _markitdown()  # raises RuntimeError(_INSTALL_HINT) if [docs] missing → render fallback
     from markitdown import StreamInfo  # safe: markitdown import already succeeded above
 
+    from markitdown import MarkItDownException  # safe: import above already succeeded
+
     stream_info = StreamInfo(extension=ext or None, mimetype=(content_type or None), url=url)
-    return _result_to_extracted(md.convert_stream(BytesIO(data), stream_info=stream_info), url)
-
-
-def from_url(url: str, *, allow_remote: bool = False) -> Extracted:
-    """Convert a URL markitdown handles specially (YouTube). Always egresses.
-
-    Contract: this is the ONLY place a raw URL is passed to markitdown.convert();
-    _acquire always uses convert_stream(bytes), so already-fetched content never
-    triggers a markitdown network fetch. Keep it that way.
-    """
-    if not allow_remote:
-        raise RemoteBlocked(
-            "YouTube conversion fetches transcripts over the network. "
-            "Re-run with --allow-remote to allow it."
-        )
-    return _result_to_extracted(_markitdown().convert(url), url)
+    try:
+        result = md.convert_stream(BytesIO(data), stream_info=stream_info)
+    except MarkItDownException as exc:
+        # A conversion failure (corrupt/unsupported bytes) escapes as a plain
+        # Exception otherwise; normalize to ValueError so callers surface a
+        # clean message instead of a traceback.
+        raise ValueError(f"cannot convert {url}: {exc}") from exc
+    return _result_to_extracted(result, url)

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import typer
 
-from . import convert, outline, quality, ui
+from . import convert, outline, quality, ui, youtube
 from .extractor import Extracted, extract, is_html
 from .fetcher import CamoufoxFetcher, FetchResult, StaticFetcher
 from .slugs import file_slug, slug
@@ -131,11 +131,11 @@ def _convert_file(path: Path, out: Path, allow_remote: bool) -> None:
 
 
 def _convert_youtube(url: str, out: Path, allow_remote: bool) -> None:
-    """Convert a YouTube URL (transcript) via markitdown, then write it."""
+    """Convert a YouTube URL to a timestamped transcript, then write it."""
     ui.step("Converting (YouTube)", url)
     try:
         with ui.status(f"Transcribing {url}"):
-            extracted = convert.from_url(url, allow_remote=allow_remote)
+            extracted = youtube.convert(url, allow_remote=allow_remote)
     except (RuntimeError, ValueError) as exc:
         ui.error(str(exc))
         raise typer.Exit(1)

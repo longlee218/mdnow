@@ -41,7 +41,7 @@ def test_ext_from_unknown_returns_empty():
     assert convert._ext_from("https://s.com/x", "application/octet-stream") == ""
 
 
-# --- network-egress gate (audio + YouTube) -----------------------------------
+# --- network-egress gate (audio) ---------------------------------------------
 
 def test_from_path_audio_refused_without_allow_remote(tmp_path):
     p = tmp_path / "clip.mp3"
@@ -54,9 +54,18 @@ def test_from_bytes_audio_mimetype_refused_without_allow_remote():
     with pytest.raises(convert.RemoteBlocked):
         convert.from_bytes(b"x", "https://s.com/clip", "audio/mpeg")
 
-def test_from_url_youtube_refused_without_allow_remote():
-    with pytest.raises(convert.RemoteBlocked):
-        convert.from_url("https://youtu.be/abc123")
+def test_from_bytes_conversion_failure_normalized_to_valueerror(monkeypatch):
+    # A markitdown MarkItDownException must surface as ValueError (clean error),
+    # not a raw traceback that escapes the caller's (RuntimeError, ValueError).
+    from markitdown import MarkItDownException
+
+    class _FakeMd:
+        def convert_stream(self, *a, **k):
+            raise MarkItDownException("boom")
+
+    monkeypatch.setattr(convert, "_markitdown", lambda: _FakeMd())
+    with pytest.raises(ValueError):
+        convert.from_bytes(b"data", "https://s.com/f.pdf", "application/pdf")
 
 def test_non_audio_not_blocked():
     # A pdf ext must NOT be treated as audio.

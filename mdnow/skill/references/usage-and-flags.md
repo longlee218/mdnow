@@ -11,7 +11,7 @@ input or when the quick cases in `SKILL.md` don't cover the request.
 |----------|-----------|
 | `http(s)://…` HTML page | Web page → static fetch, render fallback |
 | `http(s)://…` non-HTML (`.pdf`, `.xlsx`, …) | Remote file → markitdown convert |
-| `http(s)://…` YouTube (`youtu.be`, `youtube.com/watch`) | Transcript (needs `--allow-remote`) |
+| `http(s)://…` YouTube (`youtu.be`, `youtube.com/watch`) | Timestamped transcript (needs `--allow-remote`) |
 | Local path (`./report.pdf`, `/abs/file.docx`) | Local file → markitdown convert |
 | Local directory (`./docs`, `/abs/dir`) | Folder → recursive batch convert + crawl-style artifacts |
 
@@ -67,6 +67,9 @@ Flags are additive on the single command; there are no subcommands. Utility flag
   missing, render/SPA pages are skipped with a hint; static pages still convert.
 - **File conversion needs the `[docs]` extra** (markitdown). If missing, file inputs error
   with an install hint.
+- **YouTube transcripts** come out as coarse `[mm:ss]` timestamped, deep-linked paragraphs.
+  YouTube often rate-limits/blocks transcript requests from cloud/VPN/datacenter IPs — a
+  block is a transient, clearly-worded error (not a mdnow bug); wait a few minutes and retry.
 - **`--crawl` is web-only** and errors on file and folder inputs.
 - **Folder input** converts every file recursively (needs `[docs]`), mirrors the source
   tree under `-o`, and skips dotfiles/dotdirs (`.git`, `.DS_Store`, …). One unconvertible

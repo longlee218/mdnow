@@ -1,5 +1,22 @@
 # Project Changelog
 
+## [2026-07-03] — YouTube transcript rework + global error handling
+
+**Fixed:**
+- **No more traceback dumps.** A YouTube transcript failure (rate-limit / IP-block) previously escaped as `markitdown.FileConversionException` — which subclasses plain `Exception`, not `RuntimeError`/`ValueError` — so it slipped past the handler and typer printed the full Python stack trace. Root cause: youtube-transcript-api scrapes YouTube's private endpoints with no API key, and YouTube blocks cloud/VPN/datacenter IPs (the reported "422 / limit request"). Now normalized to a short, actionable one-line `Error: …`.
+- **Whole-CLI safety net.** `cli.run()` wraps the invocation so *any* unforeseen exception becomes a clean `Error: …` + exit 1 — the CLI never dumps a traceback. `MDNOW_DEBUG=1` restores tracebacks for development.
+- **Remote file conversion** (`convert.from_bytes`) now normalizes `MarkItDownException` → `ValueError` too (same latent traceback bug as YouTube, e.g. a corrupt remote PDF).
+
+**Changed:**
+- **YouTube transcripts are now timestamped.** Output is grouped into coarse (~45s) paragraphs, each prefixed with a `[mm:ss]` marker that deep-links to `youtube.com/watch?v=ID&t=Ns`. Previously markitdown merged everything into one block and discarded timing. Best for AI citation/navigation while staying low-token (per-caption timestamps were rejected as noise).
+
+**Architecture:**
+- New `mdnow/youtube.py` fetches the transcript directly via youtube-transcript-api, bypassing markitdown's fragile YouTube converter — this owns error handling AND preserves per-segment start times. Title comes from YouTube's public oEmbed (best-effort, no key). `runner._convert_youtube` calls it; the orphaned `convert.from_url` was removed.
+
+**Tests:** 188 tests passing (new `tests/test_youtube.py`; youtube.py at 84% coverage).
+
+---
+
 ## [2026-07-03] — Folder batch conversion
 
 **New features:**
