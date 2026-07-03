@@ -27,7 +27,10 @@ curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | 
 irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
 ```
 
-<sub>Or with uv: <code>uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"</code></sub>
+**Cross-platform (uv)**
+```bash
+uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
+```
 
 </div>
 
@@ -105,20 +108,11 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 
 ## Quick start
 
-**macOS / Linux**
-```bash
-curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
-```
-
-**Windows**
-```powershell
-irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
-```
-
-**Or with uv (recommended, cross-platform)**
-```bash
-uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
-```
+| Platform | One-liner |
+|:---|:---|
+| macOS / Linux | `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh` |
+| Windows | `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex` |
+| Cross-platform (uv) | `uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"` |
 
 Then:
 ```bash
@@ -133,52 +127,63 @@ Not sure what's installed? Run **`mdnow --doctor`** — it reports every extra a
 
 ## Install
 
-### 1. Base install (all users)
+### Pick your platform
 
-Choose one:
+| Platform | Base install |
+|:---|:---|
+| macOS / Linux | `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh` |
+| Windows | `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex` |
+| Cross-platform (uv) | `uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"` |
+| From source | see below |
 
-**Shell one-liner** (macOS / Linux):
+> **Distributed via git, not PyPI** — install straight from this repo. No registry, no publish step.
+
+### Add extras
+
+Base `mdnow` fetches **static HTML** and converts **local files** with lightweight logic. Add extras only when you need them:
+
+| Extra | What it adds |
+|-------|-------------|
+| `[render]` | Stealth headless browser (Camoufox, ~300MB one-time) for JS-heavy / anti-bot sites |
+| `[docs]` | Any-file conversion: PDF, Office, images/OCR, audio, YouTube |
+
+**macOS / Linux**
 ```bash
-curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
-```
-
-**uv** (recommended, cross-platform):
-```bash
-uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
-```
-
-**pipx** (Python-only, no uv required):
-```bash
-pipx install "git+https://github.com/longlee218/mdnow"
-```
-
-**From source** (contributors):
-```bash
-git clone https://github.com/longlee218/mdnow.git
-cd mdnow
-python3 -m venv .venv
-.venv/bin/pip install -e .
-```
-
-### 2. Extras (optional)
-
-Base `mdnow` fetches **static HTML** and converts **local files** with lightweight logic. Opt into heavier capabilities only when you need them:
-
-| Extra | Adds | Install |
-|-------|------|---------|
-| `[render]` | Stealth headless browser (Camoufox, ~300MB one-time) | `uv tool install "mdnow[render] @ git+https://github.com/longlee218/mdnow"` then `mdnow --fetch-browser` |
-| `[docs]` | Any-file conversion (PDF, Office, images/OCR, audio, YouTube) | `uv tool install "mdnow[docs] @ git+https://github.com/longlee218/mdnow"` |
-
-With the shell installer, pass flags instead:
-```bash
-curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render --docs
-# or everything at once:
+# render only
+curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render
+# docs only
+curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --docs
+# render + docs + skill
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
 ```
 
-`pipx` works the same way: `pipx install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"`.
+**Windows**
+```powershell
+irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o install.ps1
+# render only
+.\install.ps1 -Render
+# docs only
+.\install.ps1 -Docs
+# render + docs + skill
+.\install.ps1 -All
+```
 
-### Upgrade
+**uv (any platform)**
+```bash
+uv tool install "mdnow[render] @ git+https://github.com/longlee218/mdnow"
+uv tool install "mdnow[docs] @ git+https://github.com/longlee218/mdnow"
+uv tool install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"
+```
+
+After installing `[render]`, download the browser:
+
+```bash
+mdnow --fetch-browser
+```
+
+> No uv? You can also use `pipx install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"`.
+
+### Upgrade with `--update`
 
 Re-install the latest version from git, preserving your installed extras:
 
@@ -186,30 +191,26 @@ Re-install the latest version from git, preserving your installed extras:
 mdnow --update
 ```
 
-This runs `uv tool install --force "mdnow[<extras>] @ git+https://github.com/longlee218/mdnow"`. If `uv` is not on PATH, it prints the equivalent manual command.
+What it does:
+1. Detects which extras you currently have (`render`, `docs`, etc.)
+2. Runs `uv tool install --force "mdnow[<extras>] @ git+https://github.com/longlee218/mdnow"`
+3. If `uv` is missing, it prints the equivalent manual command
 
-### Windows
+If `uv` is not on your PATH, run the equivalent manually:
 
-**PowerShell one-liner**:
-
-```powershell
-irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
+```bash
+uv tool install --force "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"
 ```
 
-With flags (save first, then run):
+Replace `[render,docs]` with whichever extras you actually use, or omit extras entirely. No uv? Reinstall with the one-liner above and the flags you need (`--render`, `--docs`, or `--all`).
 
-```powershell
-irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o install.ps1
-.\install.ps1 -Render -Docs
-# or everything at once:
-.\install.ps1 -All -Skill
-```
+### From source
 
-Or install uv / pipx manually:
-
-```powershell
-uv tool install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"
-mdnow --fetch-browser   # if using [render]
+```bash
+git clone https://github.com/longlee218/mdnow.git
+cd mdnow
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev,docs]"
 ```
 
 ---
