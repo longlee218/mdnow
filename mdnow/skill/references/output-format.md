@@ -72,9 +72,19 @@ absolute; external links untouched). Plus three artifacts in the output dir:
   the first heading). Use each section's `token_estimate`/`word_count` to pick which part
   of a page to read before opening the full `local_path`.
 
+## Folder mode → mirrored tree + the same 3 artifacts
+
+A local folder input produces the same layout as crawl, over local files instead of URLs:
+per-file `.md` written **mirroring the source subfolder structure** (e.g. `guide/setup.pdf`
+→ `guide/setup.md`; extension stripped, parent dirs preserved), plus `llms.txt`,
+`llms-full.txt`, and `manifest.json`. In the manifest, `host` is the folder's basename,
+`generated_from` is the folder path, and each `source_url` is the local file's path (no
+link rewriting — arbitrary documents have no inter-file links). Unconvertible/skipped files
+don't appear in the artifacts.
+
 ## Reading it back
 
 - Single page/file → `Read` the one `.md`.
-- Crawl → `Read` `manifest.json` first to pick relevant pages (title/summary/headings/
-  sections), then open only the `local_path`s you need. Use `llms-full.txt` when you want
-  everything in one pass.
+- Crawl or folder → `Read` `manifest.json` first to pick relevant pages/files (title/
+  summary/headings/sections), then open only the `local_path`s you need. Use `llms-full.txt`
+  when you want everything in one pass.
