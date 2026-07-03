@@ -15,10 +15,17 @@ MCP server là optional extra `[mcp]` trong mdnow, kích hoạt qua `--mcp`. The
 - Sync docs: `README.md`, `README.vi.md`, `CLAUDE.md`
 - Cập nhật changelog
 
+## Status
+
+- **Status:** Completed
+- **Completion Date:** 2026-07-03
+- **Progress:** 100% (2/2 phases completed)
+- **Finalization Report:** [reports/mcp-removal-project-manager-260703-1140-finalization.md](./reports/mcp-removal-project-manager-260703-1140-finalization.md)
+
 ## Phases
 
-1. [Phase 1: Remove MCP code and tests](./phase-01-remove-mcp-code.md)
-2. [Phase 2: Sync docs and verify](./phase-02-sync-docs-and-verify.md)
+1. [x] [Phase 1: Remove MCP code and tests](./phase-01-remove-mcp-code.md) — Completed
+2. [x] [Phase 2: Sync docs and verify](./phase-02-sync-docs-and-verify.md) — Completed
 
 ## Success Criteria
 
