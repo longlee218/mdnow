@@ -157,3 +157,4 @@ case ":$PATH:" in
 esac
 
 echo "Done. Try:  mdnow https://example.com"
+echo "Upgrade:    mdnow --update"

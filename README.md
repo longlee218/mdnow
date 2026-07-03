@@ -168,6 +168,16 @@ curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | 
 
 `pipx` works the same way: `pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`.
 
+### Upgrade
+
+Re-install the latest version from git, preserving your installed extras:
+
+```bash
+mdnow --update
+```
+
+This runs `uv tool install --force "mdnow[<extras>] @ git+https://github.com/longlee218/mdnow"`. If `uv` is not on PATH, it prints the equivalent manual command.
+
 ### Windows
 
 Use **PowerShell** (no shell one-liner). Install uv or pipx first, then:
@@ -234,6 +244,7 @@ mdnow https://example.com --crawl --no-llms -o out/
 | `--doctor` | Report installed/missing extras (and how to fix) and exit |
 | `--fetch-browser` | Download the Camoufox browser for `--render` and exit |
 | `--install-skill` | Install the bundled Claude Code skill to `~/.claude/skills/mdnow` |
+| `--update` | Upgrade mdnow to the latest version from git |
 | `--mcp` | Run as an MCP server (stdio transport) for Claude / Cursor |
 
 ---

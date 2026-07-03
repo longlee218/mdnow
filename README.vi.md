@@ -168,6 +168,16 @@ curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | 
 
 `pipx` cũng dùng tương tự: `pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`.
 
+### Nâng cấp
+
+Cài lại phiên bản mới nhất từ git, giữ nguyên các extras đã cài:
+
+```bash
+mdnow --update
+```
+
+Lệnh này chạy `uv tool install --force "mdnow[<extras>] @ git+https://github.com/longlee218/mdnow"`. Nếu `uv` không có trên PATH, nó sẽ in câu lệnh thủ công tương đương.
+
 ### Windows
 
 Dùng **PowerShell** (không có một-dòng-lệnh shell). Cài uv hoặc pipx trước, rồi:
@@ -234,6 +244,7 @@ mdnow https://example.com --crawl --no-llms -o out/
 | `--doctor` | Báo cáo extras đã cài/còn thiếu (kèm cách khắc phục) rồi thoát |
 | `--fetch-browser` | Tải trình duyệt Camoufox cho `--render` rồi thoát |
 | `--install-skill` | Cài skill Claude Code đóng gói sẵn vào `~/.claude/skills/mdnow` |
+| `--update` | Nâng cấp mdnow lên phiên bản mới nhất từ git |
 | `--mcp` | Chạy dưới dạng MCP server (stdio transport) cho Claude / Cursor |
 
 ---

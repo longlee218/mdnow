@@ -27,6 +27,7 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs,mcp]"
 .venv/bin/mdnow --install-skill                       # install skill to ~/.claude/skills/mdnow
 .venv/bin/mdnow --install-skill --skill-dir <path>    # install to custom location
 .venv/bin/mdnow --install-skill --force               # overwrite existing skill
+.venv/bin/mdnow --update                              # upgrade mdnow to the latest git version
 
 # MCP server mode (stdio transport for Claude / Cursor)
 .venv/bin/mdnow --mcp
@@ -55,6 +56,7 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 ## Architecture — the big picture
 
 **Input-type fork at CLI entry.** `cli.main` branches first:
+- **`--update`** → `commands.self_update()` (detects installed extras, runs `uv tool install --force` from git, or prints a manual-install hint if uv is missing).
 - **`--mcp`** → `mcp_server.run()` (stdio MCP server for AI assistants).
 - **Local file** → `convert.from_path()` (markitdown), skipping the entire URL funnel.
 - **YouTube URL** → `convert.from_url()` (markitdown transcript, requires `--allow-remote`).
@@ -70,7 +72,7 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 **`mcp_server.py`** exposes the conversion pipeline as an MCP server over stdio when `--mcp` is used. It wraps the same `runner._acquire`, `crawler.crawl_site`, and `runner._convert_file_to_extracted` calls used by the CLI; responses are truncated to respect LLM context windows.
 
-**CLI orchestration vs. action helpers.** `cli.py` is the thin typer entry point; it delegates actual fetch/extract/convert/write work to `runner.py`. Input-type detection lives in `inputs.py` and filename slug helpers in `slugs.py` — this keeps `cli.py` under the 200-line ceiling. Utility commands (`--doctor`, `--fetch-browser`, `--install-skill`) are handled in `commands.py` and `doctor.py`.
+**CLI orchestration vs. action helpers.** `cli.py` is the thin typer entry point; it delegates actual fetch/extract/convert/write work to `runner.py`. Input-type detection lives in `inputs.py` and filename slug helpers in `slugs.py` — this keeps `cli.py` under the 200-line ceiling. Utility commands (`--doctor`, `--fetch-browser`, `--install-skill`, `--update`) are handled in `commands.py` and `doctor.py`.
 
 **File conversion layer** (`convert.py`): lazy markitdown import (mirrors `CamoufoxFetcher` for optional dependencies). Raises `RemoteBlocked` if audio/video/YouTube and `--allow-remote` is off. Returns `Extracted` (reuses existing writer/frontmatter path). No LLM/Azure plugins.
 

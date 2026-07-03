@@ -11,7 +11,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+import typer
+
 DEFAULT_SKILL_DIR = Path.home() / ".claude" / "skills" / "mdnow"
+
+_GIT_URL = "git+https://github.com/longlee218/mdnow"
+_EXTRA_PROBES = [("render", "camoufox"), ("docs", "markitdown"), ("mcp", "mcp")]
 
 
 def install_skill(dest_dir: Path | None, force: bool) -> Path:
@@ -45,3 +50,41 @@ def fetch_browser() -> None:
         from .doctor import missing_extra_message
         raise RuntimeError(missing_extra_message("render"))
     subprocess.run([sys.executable, "-m", "camoufox", "fetch"], check=True)
+
+
+def _detect_extras() -> list[str]:
+    return [name for name, module in _EXTRA_PROBES if importlib.util.find_spec(module) is not None]
+
+
+def _find_uv() -> list[str] | None:
+    uv = shutil.which("uv")
+    if uv:
+        return [uv]
+    if importlib.util.find_spec("uv") is not None:
+        return [sys.executable, "-m", "uv"]
+    return None
+
+
+def self_update() -> None:
+    """Upgrade mdnow in place using `uv tool install --force` from git.
+
+    Detects installed extras best-effort and preserves them. Raises typer.Exit
+    with a friendly manual-install hint when `uv` is not available.
+    """
+    extras = _detect_extras()
+    pkg = f"mdnow[{','.join(extras)}]" if extras else "mdnow"
+    spec = f"{pkg} @ {_GIT_URL}"
+
+    uv_cmd = _find_uv()
+    if uv_cmd is None:
+        typer.secho("Error: uv not found on PATH.", fg=typer.colors.RED, err=True)
+        typer.echo("To upgrade manually, run:")
+        typer.echo(f'    uv tool install --force "{spec}"')
+        typer.echo("Or use the shell one-liner:")
+        typer.echo("    curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh")
+        raise typer.Exit(1)
+
+    cmd = [*uv_cmd, "tool", "install", "--force", spec]
+    typer.echo(f"Running: {' '.join(cmd)}")
+    subprocess.run(cmd, check=True)
+    typer.echo("mdnow updated successfully.")

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+import subprocess
 from urllib.parse import urlparse
 
 import typer
@@ -45,10 +46,21 @@ def main(
     fetch_browser: bool = typer.Option(
         False, "--fetch-browser", help="Download the Camoufox browser for --render and exit"
     ),
+    update: bool = typer.Option(
+        False, "--update", help="Upgrade mdnow to the latest version from git and exit"
+    ),
 ) -> None:
     """Fetch URL → clean markdown. Single page, or --crawl for a whole-site tree."""
     if run_doctor:
         typer.echo(doctor.render_report(doctor.run_checks()))
+        return
+
+    if update:
+        try:
+            commands.self_update()
+        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+            typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(1) from exc
         return
 
     if fetch_browser:
