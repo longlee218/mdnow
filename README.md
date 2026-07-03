@@ -18,16 +18,19 @@ Turn a web page, a whole website, or a PDF/Office/audio file into clean Markdown
 [![Local-first](https://img.shields.io/badge/data%20egress-none%20by%20default-16a34a.svg)](#-why-mdnow)
 
 **macOS / Linux**
+
 ```bash
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh
 ```
 
 **Windows**
+
 ```powershell
 irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex
 ```
 
 **Cross-platform (uv)**
+
 ```bash
 uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
 ```
@@ -41,7 +44,7 @@ uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"
 LLMs are only as good as what you feed them — and the web fights you every step:
 
 - **Raw HTML is noise.** Nav, ads, cookie banners, and `<div>` soup bury the actual content.
-- **Cloud scrapers cost you twice.** They meter every call *and* send your content to a third party.
+- **Cloud scrapers cost you twice.** They meter every call _and_ send your content to a third party.
 - **Every format needs a different tool.** One thing for pages, another for PDFs, another for audio, another for a whole docs site.
 
 **mdnow collapses all of that into one local command** — pages, whole sites, and files, straight to clean Markdown, with nothing leaving your machine by default.
@@ -61,33 +64,33 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 
 ## ✨ Why mdnow
 
-|  | **mdnow** | Cloud scraper APIs | Local single-purpose tools |
-|---|:---:|:---:|:---:|
-| Runs fully local | ✅ | ❌ cloud-only | ✅ |
-| No API key / signup | ✅ | ❌ | ✅ |
-| Your content stays private | ✅ none leaves | ❌ egress by design | ✅ |
-| Web page → Markdown | ✅ | ✅ | ⚠️ extraction only |
-| Whole-site crawl → `llms.txt` | ✅ | ⚠️ varies | ❌ |
-| JS / anti-bot stealth render | ✅ | ✅ | ❌ |
-| Files: PDF, Office, audio, images… | ✅ | ⚠️ varies | ⚠️ one type each |
-| Bundled Claude Code skill | ✅ | ❌ | ❌ |
-| Cost | **Free (MIT)** | 💲 metered | Free |
+|                                    |   **mdnow**    | Cloud scraper APIs  | Local single-purpose tools |
+| ---------------------------------- | :------------: | :-----------------: | :------------------------: |
+| Runs fully local                   |       ✅       |    ❌ cloud-only    |             ✅             |
+| No API key / signup                |       ✅       |         ❌          |             ✅             |
+| Your content stays private         | ✅ none leaves | ❌ egress by design |             ✅             |
+| Web page → Markdown                |       ✅       |         ✅          |     ⚠️ extraction only     |
+| Whole-site crawl → `llms.txt`      |       ✅       |      ⚠️ varies      |             ❌             |
+| JS / anti-bot stealth render       |       ✅       |         ✅          |             ❌             |
+| Files: PDF, Office, audio, images… |       ✅       |      ⚠️ varies      |      ⚠️ one type each      |
+| Bundled Claude Code skill          |       ✅       |         ❌          |             ❌             |
+| Cost                               | **Free (MIT)** |     💲 metered      |            Free            |
 
-> **The wedge:** everything a cloud scraper does, but on *your* machine — and everything a local extractor does, but for the whole web *and* every file type, wired for LLMs out of the box.
+> **The wedge:** everything a cloud scraper does, but on _your_ machine — and everything a local extractor does, but for the whole web _and_ every file type, wired for LLMs out of the box.
 
 ---
 
 ## 🚀 What you get
 
-| | Capability | What it means |
-|---|---|---|
-| ⚡ | **Static fetch** | `httpx` + `trafilatura`. Fast default, no browser needed. |
-| 🎭 | **Stealth render** | Camoufox headless Firefox for JS-heavy / anti-bot sites — opt-in, or **auto-escalated** when static content is thin. |
-| 🔗 | **Crawl + index** | Whole-site tree → per-page `.md` + `llms.txt` + `llms-full.txt` + `manifest.json`. |
-| 📄 | **Any-file convert** | PDF, Word, PowerPoint, Excel, EPub, images (OCR), audio, YouTube, CSV/JSON/XML, ZIP. |
-| 🔌 | **Bundled skill** | `mdnow --install-skill` drops a ready-to-use skill into Claude Code. |
-| 🔒 | **Local-first** | No keys, no telemetry, no egress by default. Content is yours. |
-| 🧾 | **Idempotent output** | Content-hash versioning — re-runs only bump `version` when the body actually changed. |
+|     | Capability            | What it means                                                                                                        |
+| --- | --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| ⚡  | **Static fetch**      | `httpx` + `trafilatura`. Fast default, no browser needed.                                                            |
+| 🎭  | **Stealth render**    | Camoufox headless Firefox for JS-heavy / anti-bot sites — opt-in, or **auto-escalated** when static content is thin. |
+| 🔗  | **Crawl + index**     | Whole-site tree → per-page `.md` + `llms.txt` + `llms-full.txt` + `manifest.json`.                                   |
+| 📄  | **Any-file convert**  | PDF, Word, PowerPoint, Excel, EPub, images (OCR), audio, YouTube, CSV/JSON/XML, ZIP.                                 |
+| 🔌  | **Bundled skill**     | `mdnow --install-skill` drops a ready-to-use skill into Claude Code.                                                 |
+| 🔒  | **Local-first**       | No keys, no telemetry, no egress by default. Content is yours.                                                       |
+| 🧾  | **Idempotent output** | Content-hash versioning — re-runs only bump `version` when the body actually changed.                                |
 
 ---
 
@@ -108,13 +111,14 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 
 ## Quick start
 
-| Platform | One-liner |
-|:---|:---|
-| macOS / Linux | `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh` |
-| Windows | `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex` |
-| Cross-platform (uv) | `uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"` |
+| Platform            | One-liner                                                                             |
+| :------------------ | :------------------------------------------------------------------------------------ |
+| macOS / Linux       | `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh \| sh` |
+| Windows             | `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 \| iex`      |
+| Cross-platform (uv) | `uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"`                   |
 
 Then:
+
 ```bash
 mdnow https://example.com -o out/
 ```
@@ -129,12 +133,12 @@ Not sure what's installed? Run **`mdnow --doctor`** — it reports every extra a
 
 ### Pick your platform
 
-| Platform | Base install |
-|:---|:---|
-| macOS / Linux | `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh` |
-| Windows | `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex` |
-| Cross-platform (uv) | `uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"` |
-| From source | see below |
+| Platform            | Base install                                                                          |
+| :------------------ | :------------------------------------------------------------------------------------ |
+| macOS / Linux       | `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh \| sh` |
+| Windows             | `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 \| iex`      |
+| Cross-platform (uv) | `uv tool install "mdnow @ git+https://github.com/longlee218/mdnow"`                   |
+| From source         | see below                                                                             |
 
 > **Distributed via git, not PyPI** — install straight from this repo. No registry, no publish step.
 
@@ -142,12 +146,13 @@ Not sure what's installed? Run **`mdnow --doctor`** — it reports every extra a
 
 Base `mdnow` fetches **static HTML** and converts **local files** with lightweight logic. Add extras only when you need them:
 
-| Extra | What it adds |
-|-------|-------------|
+| Extra      | What it adds                                                                       |
+| ---------- | ---------------------------------------------------------------------------------- |
 | `[render]` | Stealth headless browser (Camoufox, ~300MB one-time) for JS-heavy / anti-bot sites |
-| `[docs]` | Any-file conversion: PDF, Office, images/OCR, audio, YouTube |
+| `[docs]`   | Any-file conversion: PDF, Office, images/OCR, audio, YouTube                       |
 
 **macOS / Linux**
+
 ```bash
 # render only
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render
@@ -158,6 +163,7 @@ curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | 
 ```
 
 **Windows**
+
 ```powershell
 irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o install.ps1
 # render only
@@ -169,6 +175,7 @@ irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o insta
 ```
 
 **uv (any platform)**
+
 ```bash
 uv tool install "mdnow[render] @ git+https://github.com/longlee218/mdnow"
 uv tool install "mdnow[docs] @ git+https://github.com/longlee218/mdnow"
@@ -192,6 +199,7 @@ mdnow --update
 ```
 
 What it does:
+
 1. Detects which extras you currently have (`render`, `docs`, etc.)
 2. Runs `uv tool install --force "mdnow[<extras>] @ git+https://github.com/longlee218/mdnow"`
 3. If `uv` is missing, it prints the equivalent manual command
@@ -218,25 +226,30 @@ python3 -m venv .venv
 ## Usage
 
 ### Website: single page
+
 ```bash
 mdnow https://example.com/article -o out/
 ```
 
 ### Website: whole-site crawl
+
 ```bash
 mdnow https://example.com --crawl -o out/                 # up to 100 pages (default)
 mdnow https://example.com --crawl --all -o out/           # no limit
 mdnow https://example.com --crawl --max-pages 50 -o out/  # custom limit
 ```
+
 Output: per-page `.md` + `llms.txt` + `llms-full.txt` + `manifest.json`.
 
 ### Website: JS-heavy or anti-bot sites
+
 ```bash
 mdnow https://example.com/spa --render -o out/   # force stealth browser (needs [render])
 mdnow https://example.com --crawl -o out/        # auto-escalates thin/empty pages to render
 ```
 
 ### File: local PDF, Office, image, audio, …
+
 ```bash
 mdnow ./report.pdf -o out/
 mdnow ./slides.pptx -o out/
@@ -245,12 +258,14 @@ mdnow ./talk.m4a --allow-remote -o out/ # audio transcription (needs [docs] + --
 ```
 
 ### File: remote URL
+
 ```bash
 mdnow https://example.com/paper.pdf -o out/
 mdnow "https://youtu.be/watch?v=abc123" --allow-remote -o out/   # YouTube transcript (cloud egress)
 ```
 
 ### Skip discovery, force fetch/crawl
+
 ```bash
 # By default, if a site publishes /llms.txt, mdnow uses it directly. Force a fresh fetch with:
 mdnow https://example.com --crawl --no-llms -o out/
@@ -258,30 +273,32 @@ mdnow https://example.com --crawl --no-llms -o out/
 
 ### Flags
 
-| Flag | Meaning |
-|------|---------|
-| `-o, --out` | Output directory (default `.`) |
-| `--crawl` | Crawl the whole site into a tree (websites only) |
-| `--max-pages N` | Max pages to crawl (default 100) |
-| `--all` | Crawl all pages (ignore `--max-pages`) |
-| `--render` | Use the Camoufox stealth browser (JS/anti-bot); requires `[render]` |
-| `--no-llms` | Skip `llms.txt` discovery; force fetch/crawl |
-| `--allow-remote` | Allow cloud APIs: audio/video transcription, YouTube (opt-in egress) |
-| `--doctor` | Report installed/missing extras (and how to fix) and exit |
-| `--fetch-browser` | Download the Camoufox browser for `--render` and exit |
-| `--install-skill` | Install the bundled Claude Code skill to `~/.claude/skills/mdnow` |
-| `--update` | Upgrade mdnow to the latest version from git |
+| Flag              | Meaning                                                              |
+| ----------------- | -------------------------------------------------------------------- |
+| `-o, --out`       | Output directory (default `.`)                                       |
+| `--crawl`         | Crawl the whole site into a tree (websites only)                     |
+| `--max-pages N`   | Max pages to crawl (default 100)                                     |
+| `--all`           | Crawl all pages (ignore `--max-pages`)                               |
+| `--render`        | Use the Camoufox stealth browser (JS/anti-bot); requires `[render]`  |
+| `--no-llms`       | Skip `llms.txt` discovery; force fetch/crawl                         |
+| `--allow-remote`  | Allow cloud APIs: audio/video transcription, YouTube (opt-in egress) |
+| `--doctor`        | Report installed/missing extras (and how to fix) and exit            |
+| `--fetch-browser` | Download the Camoufox browser for `--render` and exit                |
+| `--install-skill` | Install the bundled Claude Code skill to `~/.claude/skills/mdnow`    |
+| `--update`        | Upgrade mdnow to the latest version from git                         |
 
 ---
 
 ## 🧠 For AI assistants
 
 ### Claude Code skill
+
 ```bash
 mdnow --install-skill                                   # → ~/.claude/skills/mdnow
 mdnow --install-skill --skill-dir ~/.claude/skills/foo  # custom location
 mdnow --install-skill --force                           # overwrite existing
 ```
+
 The skill lets Claude Code fetch a URL, crawl a site, or convert a file — right from the editor.
 
 ---
