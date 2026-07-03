@@ -271,6 +271,34 @@ mdnow "https://youtu.be/watch?v=abc123" --allow-remote -o out/   # transcript Yo
 mdnow https://example.com --crawl --no-llms -o out/
 ```
 
+### Site riêng tư / nội bộ
+
+Cho các site đòi yêu cầu xác thực (session cookies, bearer tokens, v.v.):
+
+**Bearer token (API key, OAuth)**
+
+```bash
+mdnow https://internal.example.com/docs -H "Authorization: Bearer $TOKEN" -o out/
+```
+
+**Session cookies** (xuất từ trình duyệt, ví dụ: [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/iphcomtajlahbettdcakbotja27ijehe))
+
+```bash
+# Định dạng Netscape (.txt file, các browser extension xuất format này)
+mdnow https://internal.example.com/wiki --cookie-file ~/cookies.txt -o out/
+
+# Định dạng JSON: [{"name", "value", "domain", "path"}, ...]
+mdnow https://internal.example.com/wiki --cookie-file ~/cookies.json -o out/
+```
+
+**Nhiều header** (có thể lặp)
+
+```bash
+mdnow https://api.example.com -H "Authorization: Bearer $TOKEN" -H "X-API-Key: $KEY" -o out/
+```
+
+**Bảo vệ secrets:** Cookie files và tokens **không bao giờ được logged, echoed, hoặc ghi vào đầu ra**. Khuyến cáo dùng `chmod 600` cho cookie files và inject tokens qua env vars. Custom header sẽ được gửi tiếp nếu site redirect sang origin khác (httpx chỉ tự bỏ `Authorization`) — hãy trỏ mdnow vào đúng host bạn tin cậy. Lưu ý: discovery probes `llms.txt` không xác thực (dùng `--no-llms` nếu chúng làm confuse private site); discovery tĩnh khi crawl (sitemap/BFS) cũng không xác thực; per-page fetches và render-based discovery có mang xác thực.
+
 ### Các cờ (flags)
 
 | Cờ                | Ý nghĩa                                                                         |
@@ -282,6 +310,8 @@ mdnow https://example.com --crawl --no-llms -o out/
 | `--render`        | Dùng trình duyệt stealth Camoufox (site JS/anti-bot); cần `[render]`            |
 | `--no-llms`       | Bỏ qua discovery `llms.txt`; ép fetch/crawl                                     |
 | `--allow-remote`  | Cho phép API cloud: phiên âm âm thanh/video, YouTube (gửi dữ liệu ra, tùy chọn) |
+| `-H, --header`    | Thêm HTTP header (có thể lặp); ví dụ: `-H "Authorization: Bearer $TOKEN"`      |
+| `--cookie-file`   | Đường dẫn tới tệp cookies Netscape hoặc JSON để xác thực                        |
 | `--doctor`        | Báo cáo extras đã cài/còn thiếu (kèm cách khắc phục) rồi thoát                  |
 | `--fetch-browser` | Tải trình duyệt Camoufox cho `--render` rồi thoát                               |
 | `--install-skill` | Cài skill Claude Code đóng gói sẵn vào `~/.claude/skills/mdnow`                 |
@@ -309,7 +339,7 @@ Một **phễu ưu tiên đường rẻ nhất trước** — mỗi tầng chỉ
 
 1. **Discovery** — nếu site có công bố `/llms.txt`, `/llms-full.txt` (hoặc biến thể, hoặc bản `<url>.md` song sinh), dùng luôn và bỏ qua mọi thứ còn lại.
 2. **Static fetch** — `httpx` + `trafilatura`. Mặc định nhanh; không cần trình duyệt.
-3. **Render** — trình duyệt stealth Camoufox cho site nặng JS / anti-bot. Bật qua `--render`, hoặc tự động nâng cấp khi static trả về nội dung rỗng/mỏng.
+3. **Render** — trình duyệt stealth Camoufox cho site nặng JS / anti-bot. Bật qua `--render`, hoặc tự động nâng cấp khi static trả về nội dung rỗng, mỏng, hoặc toàn boilerplate (ví dụ: farms của navigation/footer links).
 
 ---
 
@@ -328,14 +358,20 @@ content_hash: <sha256>
 word_count: 1234
 token_estimate: 247
 summary: "The world as we have created it is a process of our thinking."
+outline:
+  - "## Getting Started"
+  - "### Installation"
+  - "## API Reference"
 ---
 ```
+
+Khóa `outline` liệt kê các heading strings (hữu ích cho AI agents để nhanh chóng xác định các section).
 
 Chế độ crawl còn ghi thêm ba tệp:
 
 - **`llms.txt`** — chỉ mục theo chuẩn [llmstxt.org](https://llmstxt.org): tiêu đề `# <host>`, blockquote `> <summary>`, và danh sách `## Pages` gồm `- [title](path): summary`.
 - **`llms-full.txt`** — toàn bộ Markdown của mọi trang đã crawl, mỗi trang có tiền tố `## <title>` + `Source: <url>`.
-- **`manifest.json`** — metadata dạng máy đọc được: host, số trang, hash/summary/số token của từng trang.
+- **`manifest.json`** — metadata dạng máy đọc được: host, số trang, hash/summary/số token của từng trang. Mỗi trang bao gồm `sections`: một danh sách `{slug, heading, level, word_count, token_estimate}` theo thứ tự xuất hiện trong tài liệu, với `_intro` cho nội dung trước heading đầu tiên (hữu ích cho AI agents để chọn sections theo kích thước).
 
 ---
 

@@ -28,7 +28,7 @@ def test_no_llms_skips_discovery(tmp_path, monkeypatch):
     def boom(*a, **k):
         raise AssertionError("discover must not be called with --no-llms")
     monkeypatch.setattr(cli, "discover", boom)
-    monkeypatch.setattr(run, "_acquire", lambda url, render, allow_remote: (
+    monkeypatch.setattr(run, "_acquire", lambda url, render, allow_remote, **kw: (
         FetchResult("https://s.com/p", b"x", "text/html"),
         Extracted("words " * 60, "Page", None),
     ))
@@ -38,7 +38,7 @@ def test_no_llms_skips_discovery(tmp_path, monkeypatch):
 
 def test_single_mode_writes_via_acquire(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, "discover", lambda url, crawl: None)
-    monkeypatch.setattr(run, "_acquire", lambda url, render, allow_remote: (
+    monkeypatch.setattr(run, "_acquire", lambda url, render, allow_remote, **kw: (
         FetchResult("https://s.com/p", b"x", "text/html"),
         Extracted("words " * 60, "My Page", None),
     ))
@@ -85,7 +85,7 @@ def test_acquire_nonhtml_routes_to_markitdown_not_render(monkeypatch):
     """A PDF (non-HTML) response is converted by markitdown — render is NOT called."""
     _static_returns(monkeypatch, "application/pdf", b"%PDF-1.4 ...")
 
-    def no_render(url):
+    def no_render(url, *a):
         raise AssertionError("render must not be called for a non-HTML document")
     monkeypatch.setattr(run, "_render", no_render)
     monkeypatch.setattr(
@@ -112,7 +112,7 @@ def test_acquire_nonhtml_falls_back_to_render_when_markitdown_missing(monkeypatc
     monkeypatch.setattr(convert, "_markitdown", no_markitdown)
     sentinel = (FetchResult("https://s.com/f.pdf", b"<html>", "text/html"),
                 Extracted("rendered", "R", None))
-    monkeypatch.setattr(run, "_render", lambda url: sentinel)
+    monkeypatch.setattr(run, "_render", lambda url, *a: sentinel)
 
     _, extracted = run._acquire("https://s.com/f.pdf", render=False, allow_remote=False)
     assert extracted.markdown == "rendered"  # fell back to render, didn't crash
@@ -180,7 +180,7 @@ def test_acquire_nonhtml_remoteblocked_surfaces(monkeypatch):
     import pytest
     _static_returns(monkeypatch, "audio/mpeg")
 
-    def no_render(url):
+    def no_render(url, *a):
         raise AssertionError("render must not be called when egress is refused")
     monkeypatch.setattr(run, "_render", no_render)
 

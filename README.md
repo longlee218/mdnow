@@ -271,6 +271,34 @@ mdnow "https://youtu.be/watch?v=abc123" --allow-remote -o out/   # YouTube trans
 mdnow https://example.com --crawl --no-llms -o out/
 ```
 
+### Private / internal sites
+
+For sites behind authentication (session cookies, bearer tokens, etc.):
+
+**Bearer token (API key, OAuth)**
+
+```bash
+mdnow https://internal.example.com/docs -H "Authorization: Bearer $TOKEN" -o out/
+```
+
+**Session cookies** (exported from browser, e.g., [Cookie-Editor](https://chrome.google.com/webstore/detail/cookie-editor/iphcomtajlahbettdcakbotja27ijehe))
+
+```bash
+# Netscape format (.txt file, browser extensions export this format)
+mdnow https://internal.example.com/wiki --cookie-file ~/cookies.txt -o out/
+
+# JSON list format: [{"name", "value", "domain", "path"}, ...]
+mdnow https://internal.example.com/wiki --cookie-file ~/cookies.json -o out/
+```
+
+**Multiple headers** (repeatable)
+
+```bash
+mdnow https://api.example.com -H "Authorization: Bearer $TOKEN" -H "X-API-Key: $KEY" -o out/
+```
+
+**Secret hygiene:** Cookie files and tokens are **never logged, echoed, or written to output**. Recommend `chmod 600` on cookie files and injecting tokens via env vars. Custom headers are re-sent if the site redirects cross-origin (httpx strips only `Authorization`) — point mdnow at the exact host you trust. Note: `llms.txt` discovery probes are unauthenticated (use `--no-llms` if they confuse a private site); static crawl discovery (sitemap/BFS) is unauthenticated too; per-page fetches and render-based discovery carry auth.
+
 ### Flags
 
 | Flag              | Meaning                                                              |
@@ -282,6 +310,8 @@ mdnow https://example.com --crawl --no-llms -o out/
 | `--render`        | Use the Camoufox stealth browser (JS/anti-bot); requires `[render]`  |
 | `--no-llms`       | Skip `llms.txt` discovery; force fetch/crawl                         |
 | `--allow-remote`  | Allow cloud APIs: audio/video transcription, YouTube (opt-in egress) |
+| `-H, --header`    | Add HTTP header (repeatable); e.g. `-H "Authorization: Bearer $TOKEN"` |
+| `--cookie-file`   | Path to Netscape cookies.txt or JSON cookies list for authentication |
 | `--doctor`        | Report installed/missing extras (and how to fix) and exit            |
 | `--fetch-browser` | Download the Camoufox browser for `--render` and exit                |
 | `--install-skill` | Install the bundled Claude Code skill to `~/.claude/skills/mdnow`    |
@@ -309,7 +339,7 @@ A **cheapest-path-first funnel** — each tier only runs if the previous one did
 
 1. **Discovery** — if the site publishes `/llms.txt`, `/llms-full.txt` (or variants, or a `<url>.md` twin), use it directly and skip everything else.
 2. **Static fetch** — `httpx` + `trafilatura`. Fast default; no browser.
-3. **Render** — Camoufox stealth browser for JS-heavy / anti-bot sites. Opt-in via `--render`, or auto-escalated when static returns empty/thin content.
+3. **Render** — Camoufox stealth browser for JS-heavy / anti-bot sites. Opt-in via `--render`, or auto-escalated when static returns empty, thin, or boilerplate-heavy content (e.g., navigation/footer link farms).
 
 ---
 
@@ -328,14 +358,20 @@ content_hash: <sha256>
 word_count: 1234
 token_estimate: 247
 summary: "The world as we have created it is a process of our thinking."
+outline:
+  - "## Getting Started"
+  - "### Installation"
+  - "## API Reference"
 ---
 ```
+
+The `outline` key lists heading strings (useful for AI agents to quickly identify sections).
 
 Crawl mode also writes three artifacts:
 
 - **`llms.txt`** — [llmstxt.org](https://llmstxt.org)-shaped index: `# <host>` header, `> <summary>`, and a `## Pages` list of `- [title](path): summary`.
 - **`llms-full.txt`** — Concatenated Markdown of every crawled page, each prefixed with `## <title>` + `Source: <url>`.
-- **`manifest.json`** — Machine-readable metadata: host, page count, per-page hashes, summaries, token counts.
+- **`manifest.json`** — Machine-readable metadata: host, page count, per-page hashes, summaries, token counts. Each page includes `sections`: a list of `{slug, heading, level, word_count, token_estimate}` chunks in document order, with `_intro` for the preamble before the first heading (useful for AI agents to pick sections by size).
 
 ---
 

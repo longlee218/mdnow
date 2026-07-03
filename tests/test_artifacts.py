@@ -29,7 +29,7 @@ def test_manifest_structure_and_headings():
     assert d["host"] == "s.com" and d["page_count"] == 2
     p = d["pages"][1]
     assert set(p) == {"source_url", "local_path", "title", "content_hash",
-                      "token_estimate", "word_count", "summary", "headings"}
+                      "token_estimate", "word_count", "summary", "headings", "sections"}
     assert any(h["slug"] == "tokens" for h in p["headings"])
 
 
@@ -44,3 +44,14 @@ def test_llms_txt_title_injection_sanitized():
 def test_builders_handle_empty_crawl():
     assert "# s.com" in build_llms_txt("s.com", "s", [])
     assert json.loads(build_manifest("s.com", "https://s.com/", []))["page_count"] == 0
+
+
+def test_manifest_includes_sections():
+    import json
+    from mdnow.artifacts import build_manifest
+    pages = [{"title": "T", "source_url": "https://s.com/a", "local_path": "a.md",
+              "body": "intro words here for the page\n\n# One\n\nbody text\n"}]
+    doc = json.loads(build_manifest("s.com", "https://s.com/", pages))
+    secs = doc["pages"][0]["sections"]
+    assert [s["slug"] for s in secs] == ["_intro", "one"]
+    assert all("token_estimate" in s and "word_count" in s for s in secs)

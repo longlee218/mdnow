@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 
 import typer
 
-from . import commands, doctor
+from . import auth, commands, doctor
 from .crawler import crawl_site
 from .discovery import discover
 from .inputs import is_local_file, is_youtube
@@ -33,6 +33,14 @@ def main(
     allow_remote: bool = typer.Option(
         False, "--allow-remote",
         help="Allow converters that egress to cloud APIs (audio/video transcription, YouTube)",
+    ),
+    header: list[str] = typer.Option(
+        None, "--header", "-H",
+        help='Extra request header "Name: Value" for private sites (repeatable)',
+    ),
+    cookie_file: Path = typer.Option(
+        None, "--cookie-file",
+        help="Cookies for private sites: Netscape cookies.txt or JSON list",
     ),
     install_skill: bool = typer.Option(
         False, "--install-skill", help="Install the bundled Claude skill and exit"
@@ -84,6 +92,15 @@ def main(
         typer.secho("Error: URL or file path is required.", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
 
+    # Auth material for private/internal sites. Parsed once; values are secrets
+    # and must never be echoed or written to any output.
+    try:
+        headers = auth.parse_headers(header or [])
+        cookies = auth.load_cookies(cookie_file) if cookie_file else None
+    except (ValueError, OSError) as exc:
+        typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from exc
+
     # Input-type fork: a local file path is converted directly (markitdown),
     # skipping the whole URL funnel (discovery/fetch/crawl don't apply to files).
     if is_local_file(url):
@@ -133,9 +150,10 @@ def main(
         # renderer is created unconditionally: CamoufoxFetcher() is free until its
         # first fetch (lazy browser launch), and crawl auto-escalates SPA pages to it.
         if render:
-            primary = renderer = CamoufoxFetcher()
+            primary = renderer = CamoufoxFetcher(headers=headers, cookies=cookies)
         else:
-            primary, renderer = StaticFetcher(), CamoufoxFetcher()
+            primary = StaticFetcher(headers=headers, cookies=cookies)
+            renderer = CamoufoxFetcher(headers=headers, cookies=cookies)
         try:
             typer.echo(f"Crawling {url} ...")
             ok, failed = crawl_site(
@@ -148,7 +166,7 @@ def main(
         typer.echo(f"Done: {ok} page(s) written, {failed} failed → {out}")
         return
 
-    _convert_single(url, out, render, allow_remote)
+    _convert_single(url, out, render, allow_remote, headers=headers, cookies=cookies)
 
 
 def run() -> None:

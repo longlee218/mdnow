@@ -24,7 +24,7 @@ from .extractor import extract, is_html
 from .fetcher import Fetcher
 from .guards import RateLimiter, RobotsChecker
 from .linkrewrite import rewrite_links
-from .runner import THIN_WORDS  # DRY: single source of the thin-content threshold
+from .quality import is_thin  # DRY: single source of the thin/boilerplate heuristics
 from .urls import build_path_map, canonical, same_host
 from .writer import write
 
@@ -140,7 +140,7 @@ def crawl_site(
         limiter.wait()
         try:
             page = _fetch_one(fetcher, u)
-            thin = len(page.body.split()) < THIN_WORDS
+            thin = is_thin(page.body)
         except (RuntimeError, ValueError) as exc:
             page, thin, reason = None, True, str(exc)
 

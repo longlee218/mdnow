@@ -13,12 +13,12 @@ def test_slug_fallbacks():
 
 
 def _static(content=b"<html></html>", ctype="text/html"):
-    return lambda: type("F", (), {"fetch": lambda self, u: FetchResult(u, content, ctype)})()
+    return lambda **kw: type("F", (), {"fetch": lambda self, u: FetchResult(u, content, ctype)})()
 
 
 def test_acquire_render_flag_forces_render(monkeypatch):
     called = {}
-    monkeypatch.setattr(runner, "_render", lambda u: (FetchResult(u, b"", "text/html"),
+    monkeypatch.setattr(runner, "_render", lambda u, *a: (FetchResult(u, b"", "text/html"),
                                                    Extracted("rendered body words " * 20, "R", None)))
     res, ext = runner._acquire("https://x.com", render=True, allow_remote=False)
     assert ext.title == "R"
@@ -26,8 +26,8 @@ def test_acquire_render_flag_forces_render(monkeypatch):
 
 def test_acquire_escalates_on_static_403(monkeypatch):
     def boom_fetch(self, u): raise RuntimeError("403")
-    monkeypatch.setattr(runner, "StaticFetcher", lambda: type("F", (), {"fetch": boom_fetch})())
-    monkeypatch.setattr(runner, "_render", lambda u: (FetchResult(u, b"", "text/html"),
+    monkeypatch.setattr(runner, "StaticFetcher", lambda **kw: type("F", (), {"fetch": boom_fetch})())
+    monkeypatch.setattr(runner, "_render", lambda u, *a: (FetchResult(u, b"", "text/html"),
                                                    Extracted("words " * 100, "Rendered", None)))
     _, ext = runner._acquire("https://x.com", render=False, allow_remote=False)
     assert ext.title == "Rendered"
@@ -36,7 +36,7 @@ def test_acquire_escalates_on_static_403(monkeypatch):
 def test_acquire_thin_static_kept_when_render_fails(monkeypatch):
     monkeypatch.setattr(runner, "StaticFetcher", _static())
     monkeypatch.setattr(runner, "extract", lambda c, url=None: Extracted("ten words " * 5, "Thin", None))
-    def render_fails(u): raise ValueError("rendered but empty")
+    def render_fails(u, *a): raise ValueError("rendered but empty")
     monkeypatch.setattr(runner, "_render", render_fails)
     _, ext = runner._acquire("https://x.com/p", render=False, allow_remote=False)
     assert ext.title == "Thin" and ext.word_count == 10   # kept, no crash
@@ -46,6 +46,6 @@ def test_acquire_returns_good_static_without_render(monkeypatch):
     monkeypatch.setattr(runner, "StaticFetcher", _static())
     monkeypatch.setattr(runner, "extract", lambda c, url=None: Extracted("plenty of words here " * 30, "OK", None))
     sentinel = {"rendered": False}
-    monkeypatch.setattr(runner, "_render", lambda u: sentinel.__setitem__("rendered", True))
+    monkeypatch.setattr(runner, "_render", lambda u, *a: sentinel.__setitem__("rendered", True))
     _, ext = runner._acquire("https://x.com/p", render=False, allow_remote=False)
     assert ext.title == "OK" and sentinel["rendered"] is False   # render never called

@@ -21,6 +21,9 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs]"
 # Run from the venv (auto-detects input type: URL, local file, or YouTube)
 .venv/bin/mdnow <url|file> [-o out/] [--crawl] [--render] [--no-llms] [--allow-remote] [--max-pages N] [--all]
 
+# Private/internal sites: inject auth into both fetch tiers
+.venv/bin/mdnow <url> -H "Authorization: Bearer $TOKEN" --cookie-file cookies.txt
+
 # Utility flags
 .venv/bin/mdnow --doctor                              # report installed/missing extras
 .venv/bin/mdnow --fetch-browser                       # download Camoufox browser (one-time)
@@ -29,7 +32,7 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs]"
 .venv/bin/mdnow --install-skill --force               # overwrite existing skill
 .venv/bin/mdnow --update                              # upgrade mdnow to the latest git version
 
-# Tests (106 tests, ~88% coverage)
+# Tests (139 tests, ~88% coverage)
 .venv/bin/python -m pytest tests/ -q
 .venv/bin/python -m pytest tests/test_linkrewrite.py -q          # one file
 .venv/bin/python -m pytest tests/test_cli.py::test_slug_fallbacks   # one test
@@ -68,6 +71,12 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 3. **Render** (`fetcher.CamoufoxFetcher`): stealth headless Firefox for JS-heavy / anti-bot pages. Opt-in via `--render`, or **auto-escalated** when static returns blocked/empty/thin content — in single-page (`runner._acquire`) **and** crawl (`crawler.crawl_site`) mode. `fetch()` uses `wait_until="domcontentloaded"` then a best-effort `networkidle` wait (SPAs render after DOM load; `wait_until="load"` triggers a driver crash). Before launch it calls `playwright_patch.ensure_driver_patched()` to self-heal a Playwright Firefox bug that crashes the whole Node driver on SPA `pageError`s with no `location` — idempotent, best-effort, re-applied after any playwright reinstall.
 
 **The one abstraction that matters: `Fetcher` (Protocol in `fetcher.py`).** `StaticFetcher` and `CamoufoxFetcher` both implement `fetch(url) -> FetchResult`. Everything downstream (extractor, crawler) is fetcher-agnostic — that's why swapping in render is a one-line change. Don't leak fetch details past this seam.
+
+**Auth for private sites is constructor state on the fetchers, not a pipeline concern.** `auth.py` parses `--header "Name: Value"` strings and cookie files (Netscape cookies.txt incl. `#HttpOnly_` lines, or a JSON list) into plain dicts; `StaticFetcher(headers=, cookies=)` builds a domain/path-scoped `httpx.Cookies` jar, `CamoufoxFetcher` applies the same material via `set_extra_http_headers` + context cookies. Values are secrets: never echo, log, or write them to any output (error messages name the header, never its value). llms.txt discovery and static crawl discovery (sitemap/BFS) remain unauthenticated — per-page fetches and render discovery carry the auth.
+
+**Escalation quality gate lives in `quality.py`** (single source, re-exported as `runner.THIN_WORDS` for compat): `is_thin()` = under 50 words **or** link-density > 0.7 while under 200 words (nav/footer link-farm extracted instead of the article). Both single-page (`runner._acquire`) and crawl (`crawler.crawl_site`) escalate on it. Word counts strip link URLs first.
+
+**Section-level retrieval metadata:** `outline.sections()` chunks markdown at headings (code-fence-aware via length-preserving masking so offsets index the original text; preamble → slug `_intro`) with per-section `word_count`/`token_estimate`; slugs are shared with `outline.headings()`. Per-page frontmatter carries `outline:` (list of `"## Heading"` strings); `manifest.json` pages carry `sections`. An agent picks a section by slug/size before reading any body.
 
 **CLI orchestration vs. action helpers.** `cli.py` is the thin typer entry point; it delegates actual fetch/extract/convert/write work to `runner.py`. Input-type detection lives in `inputs.py` and filename slug helpers in `slugs.py` — this keeps `cli.py` under the 200-line ceiling. Utility commands (`--doctor`, `--fetch-browser`, `--install-skill`, `--update`) are handled in `commands.py` and `doctor.py`.
 

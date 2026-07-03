@@ -29,3 +29,9 @@ def test_writer_versioning_created_unchanged_updated(tmp_path):
 
     o3 = write(p, "https://x.com", "T", None, "2026-06-22", "hello world changed")
     assert o3.status == "updated" and o3.version == 2     # changed → bump
+
+
+def test_build_includes_outline_of_headings():
+    from mdnow.frontmatter import build
+    meta = build("https://s.com/p", "T", None, "2026-07-03", 1, "# A\n\ntext\n\n## B\n\nmore\n")
+    assert meta["outline"] == ["# A", "## B"]
