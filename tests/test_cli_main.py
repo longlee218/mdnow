@@ -192,51 +192,7 @@ def test_acquire_nonhtml_remoteblocked_surfaces(monkeypatch):
         run._acquire("https://s.com/a.mp3", render=False, allow_remote=False)
 
 
-# --- Phase A: MCP server mode -------------------------------------------------
-
-
-def test_mcp_flag_starts_server(monkeypatch):
-    called = {}
-    def fake_run():
-        called["run"] = True
-    monkeypatch.setattr("mdnow.mcp_server.run", fake_run)
-    res = runner.invoke(_app(), ["--mcp"])
-    assert res.exit_code == 0
-    assert called.get("run") is True
-
-
-def test_mcp_flag_ignores_url_argument(monkeypatch):
-    called = {}
-    def fake_run():
-        called["run"] = True
-    monkeypatch.setattr("mdnow.mcp_server.run", fake_run)
-    res = runner.invoke(_app(), ["--mcp", "https://s.com/p"])
-    assert res.exit_code == 0
-    assert called.get("run") is True
-
-
-def test_mcp_missing_extra_is_friendly(monkeypatch):
-    # mcp_server raises RuntimeError at import when the [mcp] extra is absent
-    # (it wraps the ImportError). The --mcp branch must catch it and print the
-    # install hint instead of leaking a traceback.
-    import builtins
-    import sys
-
-    monkeypatch.delitem(sys.modules, "mdnow.mcp_server", raising=False)
-    real_import = builtins.__import__
-
-    def fake_import(name, g=None, l=None, fromlist=(), level=0):
-        if fromlist and "mcp_server" in fromlist:
-            raise RuntimeError("MCP server requires the [mcp] extra")
-        return real_import(name, g, l, fromlist, level)
-
-    monkeypatch.setattr(builtins, "__import__", fake_import)
-    res = runner.invoke(_app(), ["--mcp"])
-    assert res.exit_code == 1
-    assert "mcp" in res.output.lower()
-
-
-def test_missing_url_without_mcp_errors():
+def test_missing_url_errors():
     res = runner.invoke(_app(), [])
     assert res.exit_code == 1
     assert "URL or file path is required" in res.output

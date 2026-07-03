@@ -14,8 +14,7 @@
 # Flags:
 #   --render        include the [render] extra (Camoufox stealth browser)
 #   --docs          include the [docs] extra (markitdown file conversion)
-#   --mcp           include the [mcp] extra (MCP server mode)
-#   --all           shorthand for --render --docs --mcp
+#   --all           shorthand for --render --docs
 #   --skill         install the bundled Claude Code skill after install
 #   -h, --help      show this help and exit
 #
@@ -27,19 +26,17 @@ set -eu
 
 want_render=0
 want_docs=0
-want_mcp=0
 want_skill=0
 
 GIT_URL="git+https://github.com/longlee218/mdnow"
 
 usage() {
     cat <<'EOF'
-Usage: install.sh [--render] [--docs] [--mcp] [--all] [--skill] [-h|--help]
+Usage: install.sh [--render] [--docs] [--all] [--skill] [-h|--help]
 
   --render   install the [render] extra (Camoufox stealth browser, ~300MB one-time download)
   --docs     install the [docs] extra (markitdown file conversion: PDF, Office, images, audio)
-  --mcp      install the [mcp] extra (MCP server mode for AI assistants)
-  --all      shorthand for --render --docs --mcp
+  --all      shorthand for --render --docs
   --skill    install the bundled Claude Code skill to ~/.claude/skills/mdnow
   -h, --help show this help and exit
 EOF
@@ -49,8 +46,7 @@ for arg in "$@"; do
     case "$arg" in
         --render) want_render=1 ;;
         --docs) want_docs=1 ;;
-        --mcp) want_mcp=1 ;;
-        --all) want_render=1; want_docs=1; want_mcp=1 ;;
+        --all) want_render=1; want_docs=1 ;;
         --skill) want_skill=1 ;;
         -h|--help) usage; exit 0 ;;
         *)
@@ -100,9 +96,8 @@ add_extra() {
 }
 [ "$want_render" = 1 ] && add_extra render
 [ "$want_docs" = 1 ] && add_extra docs
-[ "$want_mcp" = 1 ] && add_extra mcp
 
-# Package spec, with optional extras (e.g. "mdnow" or "mdnow[render,mcp]").
+# Package spec, with optional extras (e.g. "mdnow" or "mdnow[render,docs]").
 if [ -n "$extras" ]; then
     pkg="mdnow[$extras]"
 else

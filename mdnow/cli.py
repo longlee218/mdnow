@@ -34,7 +34,6 @@ def main(
         False, "--allow-remote",
         help="Allow converters that egress to cloud APIs (audio/video transcription, YouTube)",
     ),
-    mcp: bool = typer.Option(False, "--mcp", help="Run as an MCP server (stdio transport)"),
     install_skill: bool = typer.Option(
         False, "--install-skill", help="Install the bundled Claude skill and exit"
     ),
@@ -79,21 +78,6 @@ def main(
             typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
             raise typer.Exit(1) from exc
         typer.echo(f"Installed skill to {dest}")
-        return
-
-    if mcp:
-        try:
-            from . import mcp_server
-        # mcp_server raises RuntimeError at import when the [mcp] extra is absent
-        # (it wraps the ImportError), so catch both to keep the hint friendly.
-        except (ImportError, RuntimeError) as exc:
-            typer.secho(
-                f"Error: {doctor.missing_extra_message('mcp')}",
-                fg=typer.colors.RED,
-                err=True,
-            )
-            raise typer.Exit(1) from exc
-        mcp_server.run()
         return
 
     if not url:

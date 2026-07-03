@@ -25,7 +25,6 @@ input or when the quick cases in `SKILL.md` don't cover the request.
 | `--render` | Force the Camoufox stealth browser (JS / anti-bot) |
 | `--no-llms` | Skip the `llms.txt` discovery shortcut; force fetch/crawl |
 | `--allow-remote` | Allow cloud-egress converters (audio/video transcription, YouTube) |
-| `--mcp` | Run as an MCP server over stdio (not used from this skill) |
 
 Flags are additive on the single command; there are no subcommands.
 

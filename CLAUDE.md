@@ -15,8 +15,8 @@ Prefer the `docs` skill / `docs-manager` agent to do the sync. Keep this file in
 ## Commands
 
 ```bash
-# Dev install (editable, into a local venv; include [docs] for file conversion, [mcp] for MCP server)
-python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs,mcp]"
+# Dev install (editable, into a local venv; include [docs] for file conversion)
+python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs]"
 
 # Run from the venv (auto-detects input type: URL, local file, or YouTube)
 .venv/bin/mdnow <url|file> [-o out/] [--crawl] [--render] [--no-llms] [--allow-remote] [--max-pages N] [--all]
@@ -29,10 +29,7 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs,mcp]"
 .venv/bin/mdnow --install-skill --force               # overwrite existing skill
 .venv/bin/mdnow --update                              # upgrade mdnow to the latest git version
 
-# MCP server mode (stdio transport for Claude / Cursor)
-.venv/bin/mdnow --mcp
-
-# Tests (95 tests, ~88% coverage)
+# Tests (106 tests, ~88% coverage)
 .venv/bin/python -m pytest tests/ -q
 .venv/bin/python -m pytest tests/test_linkrewrite.py -q          # one file
 .venv/bin/python -m pytest tests/test_cli.py::test_slug_fallbacks   # one test
@@ -42,10 +39,10 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev,docs,mcp]"
 .venv/bin/python -m compileall -q mdnow
 
 # Global install via uv from GitHub (recommended; distributed via git, NOT PyPI)
-uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
+uv tool install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"
 
 # Global install via pipx (Python-only)
-pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
+pipx install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"
 
 # One-liner install (macOS / Linux)
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
@@ -60,7 +57,6 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 **Input-type fork at CLI entry.** `cli.main` branches first:
 - **`--update`** → `commands.self_update()` (detects installed extras, runs `uv tool install --force` from git, or prints a manual-install hint if uv is missing).
-- **`--mcp`** → `mcp_server.run()` (stdio MCP server for AI assistants).
 - **Local file** → `convert.from_path()` (markitdown), skipping the entire URL funnel.
 - **YouTube URL** → `convert.from_url()` (markitdown transcript, requires `--allow-remote`).
 - **Other URL** → cheapest-path-first website funnel (below).
@@ -73,8 +69,6 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 **The one abstraction that matters: `Fetcher` (Protocol in `fetcher.py`).** `StaticFetcher` and `CamoufoxFetcher` both implement `fetch(url) -> FetchResult`. Everything downstream (extractor, crawler) is fetcher-agnostic — that's why swapping in render is a one-line change. Don't leak fetch details past this seam.
 
-**`mcp_server.py`** exposes the conversion pipeline as an MCP server over stdio when `--mcp` is used. It wraps the same `runner._acquire`, `crawler.crawl_site`, and `runner._convert_file_to_extracted` calls used by the CLI; responses are truncated to respect LLM context windows.
-
 **CLI orchestration vs. action helpers.** `cli.py` is the thin typer entry point; it delegates actual fetch/extract/convert/write work to `runner.py`. Input-type detection lives in `inputs.py` and filename slug helpers in `slugs.py` — this keeps `cli.py` under the 200-line ceiling. Utility commands (`--doctor`, `--fetch-browser`, `--install-skill`, `--update`) are handled in `commands.py` and `doctor.py`.
 
 **File conversion layer** (`convert.py`): lazy markitdown import (mirrors `CamoufoxFetcher` for optional dependencies). Raises `RemoteBlocked` if audio/video/YouTube and `--allow-remote` is off. Returns `Extracted` (reuses existing writer/frontmatter path). No LLM/Azure plugins.
@@ -83,7 +77,7 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 **Crawl is a two-pass over the whole page set** (`crawler.crawl_site`): fetch+extract every page first (with per-page error isolation — one bad page never aborts the run), *then* build the URL→local-path map, *then* rewrite links and write. The two passes are required because link rewriting needs the complete set of crawled URLs before it can know which links resolve locally.
 
-**Crawl handles JS-rendered SPA sites via the render tier at two seams.** (1) *Discovery* (`crawler.discover_urls`): when static discovery (sitemap → focused_crawler) yields ≤1 URL — or `--render` is set — it renders the start page and harvests same-host `<a href>` links from the live DOM (`_render_discover`), which is the only way to enumerate an SPA whose nav is client-rendered. (2) *Per-page* (`crawler._fetch_one`): a page whose static extraction is empty or thin (`< THIN_WORDS`, imported from `runner`) is re-fetched through the renderer — same escalation as single-page. `cli`/`mcp_server` pass a lazily-constructed `CamoufoxFetcher()` as `renderer=`; it costs nothing until first use, and escalation is guarded off when the primary already renders (`renderer is not fetcher`).
+**Crawl handles JS-rendered SPA sites via the render tier at two seams.** (1) *Discovery* (`crawler.discover_urls`): when static discovery (sitemap → focused_crawler) yields ≤1 URL — or `--render` is set — it renders the start page and harvests same-host `<a href>` links from the live DOM (`_render_discover`), which is the only way to enumerate an SPA whose nav is client-rendered. (2) *Per-page* (`crawler._fetch_one`): a page whose static extraction is empty or thin (`< THIN_WORDS`, imported from `runner`) is re-fetched through the renderer — same escalation as single-page. `cli` passes a lazily-constructed `CamoufoxFetcher()` as `renderer=`; it costs nothing until first use, and escalation is guarded off when the primary already renders (`renderer is not fetcher`).
 
 **Provenance: `token_estimate` and `summary` are derived once at the frontmatter choke point** (`frontmatter.build`), not threaded through callers. `outline.py` provides pure helpers: `slugify_heading`, `headings` (code-fence-aware), `summary_of` (extractive, first paragraph), `token_estimate` (chars/4).
 
@@ -101,18 +95,18 @@ Notes: `.venv` is allowlisted in `.claude/.ckignore` so the interpreter is calla
 
 - Every module stays **< 200 lines**, one responsibility. Many small files > few large ones.
 - New CLI capabilities are **flags on the single command** (`cli.main`), not subcommands — the command is `mdnow <url|file> [flags]`.
-- `camoufox`, `markitdown`, and `mcp` are **optional** dependencies (`[render]`, `[docs]`, and `[mcp]` extras), imported lazily so base-install users never need them.
+- `camoufox` and `markitdown` are **optional** dependencies (`[render]` and `[docs]` extras), imported lazily so base-install users never need them.
 - Founding constraint: **fully local, no API keys, no data egress by default.** Audio/video transcription and YouTube egress are opt-in via `--allow-remote`. Never use LLM/Azure client keys.
 
 ## Distribution & public surfaces
 
 **Git-based distribution (NOT PyPI):** the package is installed straight from the GitHub repo — there is no PyPI release and no publish workflow. Install spec is the PEP 508 direct reference `mdnow[extras] @ git+https://github.com/longlee218/mdnow`. Public users install via:
-1. **Shell one-liner** (macOS/Linux): `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh [--render] [--docs] [--mcp] [--all] [--skill]`
+1. **Shell one-liner** (macOS/Linux): `curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh [--render] [--docs] [--all] [--skill]`
    - `install.sh` ensures `uv` is installed, then `uv tool install "mdnow[extras] @ git+<repo>"`, downloads browser if `--render`, installs skill if `--skill`.
    - Raw-URL branch is `main`.
-2. **PowerShell one-liner** (Windows): `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex`, or save the script and run `.\install.ps1 [-Render] [-Docs] [-Mcp] [-All] [-Skill]`.
+2. **PowerShell one-liner** (Windows): `irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 | iex`, or save the script and run `.\install.ps1 [-Render] [-Docs] [-All] [-Skill]`.
    - `install.ps1` ensures `uv` is installed, then `uv tool install --force "mdnow[extras] @ git+<repo>"`, downloads browser if `-Render`, installs skill if `-Skill`.
-3. **uv** (recommended, cross-platform): `uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`
+3. **uv** (recommended, cross-platform): `uv tool install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"`
 4. **pipx**: `pipx install "git+https://github.com/longlee218/mdnow"`
 
 `pyproject.toml` still carries valid package metadata (name, classifiers, `[project.urls]`) so the git install builds cleanly, but there is no CI/publish workflow and PyPI is intentionally not used.

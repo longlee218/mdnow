@@ -54,7 +54,7 @@ def test_self_update_base_install_when_no_extras(monkeypatch):
 
 
 def test_self_update_combined_extras_when_detected(monkeypatch):
-    calls = _patch_env(monkeypatch, {"camoufox", "markitdown", "mcp"}, "/fake/uv")
+    calls = _patch_env(monkeypatch, {"camoufox", "markitdown"}, "/fake/uv")
     res = runner.invoke(_app(), ["--update"])
     assert res.exit_code == 0
     cmd, _ = calls[0]
@@ -63,7 +63,7 @@ def test_self_update_combined_extras_when_detected(monkeypatch):
         "tool",
         "install",
         "--force",
-        "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow",
+        "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow",
     ]
     assert "updated successfully" in res.stdout
 

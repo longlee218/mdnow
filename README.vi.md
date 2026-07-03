@@ -61,7 +61,7 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 | Crawl cả site → `llms.txt` | ✅ | ⚠️ tùy nơi | ❌ |
 | Render vượt JS / anti-bot | ✅ | ✅ | ❌ |
 | Tệp: PDF, Office, âm thanh, ảnh… | ✅ | ⚠️ tùy nơi | ⚠️ mỗi loại một công cụ |
-| MCP server + skill cho Claude | ✅ | ❌ | ❌ |
+| Skill cho Claude | ✅ | ❌ | ❌ |
 | Chi phí | **Miễn phí (MIT)** | 💲 tính theo lượt | Miễn phí |
 
 > **Điểm khác biệt then chốt:** làm được mọi thứ một cloud scraper làm, nhưng ngay trên máy *của bạn* — và làm được mọi thứ một công cụ trích xuất cục bộ làm, nhưng cho cả web *lẫn* mọi loại tệp, đã được thiết kế sẵn cho LLM.
@@ -76,7 +76,6 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 | 🎭 | **Stealth render** | Camoufox headless Firefox cho site nặng JS / anti-bot — tùy chọn bật, hoặc **tự động nâng cấp** khi nội dung tĩnh quá mỏng. |
 | 🔗 | **Crawl + lập chỉ mục** | Cây cả site → mỗi trang một `.md` + `llms.txt` + `llms-full.txt` + `manifest.json`. |
 | 📄 | **Chuyển đổi mọi tệp** | PDF, Word, PowerPoint, Excel, EPub, ảnh (OCR), âm thanh, YouTube, CSV/JSON/XML, ZIP. |
-| 🧠 | **MCP server** | Cung cấp pipeline dưới dạng công cụ cho Claude Desktop, Claude Code, Cursor và các LLM client khác. |
 | 🔌 | **Skill đóng gói sẵn** | `mdnow --install-skill` cài một skill dùng ngay vào Claude Code. |
 | 🔒 | **Cục bộ trước tiên** | Không key, không telemetry, mặc định không gửi dữ liệu đi. Nội dung là của bạn. |
 | 🧾 | **Kết quả bất biến (idempotent)** | Versioning theo content-hash — chạy lại chỉ tăng `version` khi nội dung thực sự đổi. |
@@ -157,16 +156,15 @@ Bản nền `mdnow` lấy **HTML tĩnh** và chuyển đổi **tệp cục bộ*
 |-------|---------|---------|
 | `[render]` | Trình duyệt stealth headless (Camoufox, tải ~300MB một lần) | `uv tool install "mdnow[render] @ git+https://github.com/longlee218/mdnow"` rồi `mdnow --fetch-browser` |
 | `[docs]` | Chuyển đổi mọi tệp (PDF, Office, ảnh/OCR, âm thanh, YouTube) | `uv tool install "mdnow[docs] @ git+https://github.com/longlee218/mdnow"` |
-| `[mcp]` | Chế độ MCP server cho Claude / Cursor | `uv tool install "mdnow[mcp] @ git+https://github.com/longlee218/mdnow"` |
 
 Với trình cài đặt shell, truyền cờ thay thế:
 ```bash
-curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render --docs --mcp
+curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render --docs
 # hoặc tất cả cùng lúc:
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
 ```
 
-`pipx` cũng dùng tương tự: `pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`.
+`pipx` cũng dùng tương tự: `pipx install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"`.
 
 ### Nâng cấp
 
@@ -190,7 +188,7 @@ Với cờ (lưu trước, rồi chạy):
 
 ```powershell
 irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o install.ps1
-.\install.ps1 -Render -Docs -Mcp
+.\install.ps1 -Render -Docs
 # hoặc tất cả cùng lúc:
 .\install.ps1 -All -Skill
 ```
@@ -198,7 +196,7 @@ irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o insta
 Hoặc cài uv / pipx thủ công:
 
 ```powershell
-uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
+uv tool install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"
 mdnow --fetch-browser   # nếu dùng [render]
 ```
 
@@ -260,7 +258,6 @@ mdnow https://example.com --crawl --no-llms -o out/
 | `--fetch-browser` | Tải trình duyệt Camoufox cho `--render` rồi thoát |
 | `--install-skill` | Cài skill Claude Code đóng gói sẵn vào `~/.claude/skills/mdnow` |
 | `--update` | Nâng cấp mdnow lên phiên bản mới nhất từ git |
-| `--mcp` | Chạy dưới dạng MCP server (stdio transport) cho Claude / Cursor |
 
 ---
 
@@ -273,21 +270,6 @@ mdnow --install-skill --skill-dir ~/.claude/skills/foo  # vị trí tùy chỉnh
 mdnow --install-skill --force                           # ghi đè bản cũ
 ```
 Skill này giúp Claude Code lấy một URL, crawl một site, hoặc chuyển đổi một tệp — ngay trong trình soạn thảo.
-
-### MCP server
-Cung cấp mdnow dưới dạng [MCP](https://modelcontextprotocol.io) server cho Claude Desktop, Claude Code, hoặc Cursor:
-```bash
-mdnow --mcp
-```
-**Cấu hình Claude Desktop** (`~/.claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "mdnow": { "command": "/path/to/mdnow", "args": ["--mcp"] }
-  }
-}
-```
-**Các công cụ được cung cấp:** `mdnow_fetch_url` · `mdnow_crawl_site` · `mdnow_convert_file`.
 
 ---
 
@@ -356,11 +338,11 @@ Chế độ crawl còn ghi thêm ba tệp:
 git clone https://github.com/longlee218/mdnow.git
 cd mdnow
 python3 -m venv .venv
-.venv/bin/pip install -e ".[dev,docs,mcp]"
-.venv/bin/pytest          # 113 test, ~88% coverage
+.venv/bin/pip install -e ".[dev,docs]"
+.venv/bin/pytest          # 106 test, ~88% coverage
 ```
 
-**Kiến trúc** — mỗi module dưới 200 dòng, một trách nhiệm: `cli`, `discovery`/`llmstxt`, `fetcher` (`StaticFetcher`/`CamoufoxFetcher` sau một interface `Fetcher` duy nhất), `playwright_patch` (bản vá tự phục hồi driver render), `extractor`, `convert` (bọc markitdown), `crawler`, `urls`, `linkrewrite`, `guards`, `frontmatter`, `outline`, `artifacts`, `writer`, `commands`, `doctor`, `mcp_server`.
+**Kiến trúc** — mỗi module dưới 200 dòng, một trách nhiệm: `cli`, `discovery`/`llmstxt`, `fetcher` (`StaticFetcher`/`CamoufoxFetcher` sau một interface `Fetcher` duy nhất), `playwright_patch` (bản vá tự phục hồi driver render), `extractor`, `convert` (bọc markitdown), `crawler`, `urls`, `linkrewrite`, `guards`, `frontmatter`, `outline`, `artifacts`, `writer`, `commands`, `doctor`.
 
 ---
 

@@ -42,7 +42,6 @@ docs = [
     "markitdown[pdf,docx,pptx,xlsx,xls,outlook,audio-transcription,youtube-transcription]>=0.1",
     "youtube-transcript-api>=1.2.4",  # 1.0.x had broken XML fetch for YT transcripts
 ]
-mcp = ["mcp>=1.0.0,<2.0", "pydantic>=2"]  # MCP server mode for AI assistants (pydantic used directly)
 
 [project.scripts]
 mdnow = "mdnow.cli:run"

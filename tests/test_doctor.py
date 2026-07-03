@@ -45,15 +45,13 @@ def test_run_checks_reports_missing_extras_with_fix_commands(monkeypatch):
     assert "mdnow[docs]" in report
     assert "[MISSING] [render] extra" in report
     assert "mdnow[render]" in report
-    assert "[MISSING] [mcp] extra" in report
-    assert "mdnow[mcp]" in report
     assert "git+" in report  # git-based install hint, not PyPI
     assert "[MISSING] Claude skill" in report
     assert "mdnow --install-skill" in report
 
 
 def test_run_checks_reports_installed_extras_as_ok(monkeypatch):
-    monkeypatch.setattr(doctor.importlib.util, "find_spec", _fake_find_spec({"markitdown", "camoufox", "mcp"}))
+    monkeypatch.setattr(doctor.importlib.util, "find_spec", _fake_find_spec({"markitdown", "camoufox"}))
     monkeypatch.setattr(doctor, "_check_render_browser", lambda: doctor.Check("render browser", True, "downloaded (1.0)"))
     monkeypatch.setattr(doctor, "_check_skill", lambda: doctor.Check("Claude skill", True, "installed at ~/.claude/skills/mdnow"))
 
@@ -61,7 +59,6 @@ def test_run_checks_reports_installed_extras_as_ok(monkeypatch):
 
     assert "[OK] [docs] extra: installed" in report
     assert "[OK] [render] extra: installed" in report
-    assert "[OK] [mcp] extra: installed" in report
     assert "[OK] Claude skill" in report
 
 

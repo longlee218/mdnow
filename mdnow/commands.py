@@ -16,7 +16,7 @@ import typer
 DEFAULT_SKILL_DIR = Path.home() / ".claude" / "skills" / "mdnow"
 
 _GIT_URL = "git+https://github.com/longlee218/mdnow"
-_EXTRA_PROBES = [("render", "camoufox"), ("docs", "markitdown"), ("mcp", "mcp")]
+_EXTRA_PROBES = [("render", "camoufox"), ("docs", "markitdown")]
 
 
 def install_skill(dest_dir: Path | None, force: bool) -> Path:

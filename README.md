@@ -61,7 +61,7 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 | Whole-site crawl → `llms.txt` | ✅ | ⚠️ varies | ❌ |
 | JS / anti-bot stealth render | ✅ | ✅ | ❌ |
 | Files: PDF, Office, audio, images… | ✅ | ⚠️ varies | ⚠️ one type each |
-| MCP server + Claude skill | ✅ | ❌ | ❌ |
+| Bundled Claude Code skill | ✅ | ❌ | ❌ |
 | Cost | **Free (MIT)** | 💲 metered | Free |
 
 > **The wedge:** everything a cloud scraper does, but on *your* machine — and everything a local extractor does, but for the whole web *and* every file type, wired for LLMs out of the box.
@@ -76,7 +76,6 @@ Done: 47 page(s) written, 0 failed → out/   (+ llms.txt, llms-full.txt, manife
 | 🎭 | **Stealth render** | Camoufox headless Firefox for JS-heavy / anti-bot sites — opt-in, or **auto-escalated** when static content is thin. |
 | 🔗 | **Crawl + index** | Whole-site tree → per-page `.md` + `llms.txt` + `llms-full.txt` + `manifest.json`. |
 | 📄 | **Any-file convert** | PDF, Word, PowerPoint, Excel, EPub, images (OCR), audio, YouTube, CSV/JSON/XML, ZIP. |
-| 🧠 | **MCP server** | Expose the pipeline as tools to Claude Desktop, Claude Code, Cursor, and other LLM clients. |
 | 🔌 | **Bundled skill** | `mdnow --install-skill` drops a ready-to-use skill into Claude Code. |
 | 🔒 | **Local-first** | No keys, no telemetry, no egress by default. Content is yours. |
 | 🧾 | **Idempotent output** | Content-hash versioning — re-runs only bump `version` when the body actually changed. |
@@ -157,16 +156,15 @@ Base `mdnow` fetches **static HTML** and converts **local files** with lightweig
 |-------|------|---------|
 | `[render]` | Stealth headless browser (Camoufox, ~300MB one-time) | `uv tool install "mdnow[render] @ git+https://github.com/longlee218/mdnow"` then `mdnow --fetch-browser` |
 | `[docs]` | Any-file conversion (PDF, Office, images/OCR, audio, YouTube) | `uv tool install "mdnow[docs] @ git+https://github.com/longlee218/mdnow"` |
-| `[mcp]` | MCP server mode for Claude / Cursor | `uv tool install "mdnow[mcp] @ git+https://github.com/longlee218/mdnow"` |
 
 With the shell installer, pass flags instead:
 ```bash
-curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render --docs --mcp
+curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --render --docs
 # or everything at once:
 curl -LsSf https://raw.githubusercontent.com/longlee218/mdnow/main/install.sh | sh --all
 ```
 
-`pipx` works the same way: `pipx install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"`.
+`pipx` works the same way: `pipx install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"`.
 
 ### Upgrade
 
@@ -190,7 +188,7 @@ With flags (save first, then run):
 
 ```powershell
 irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o install.ps1
-.\install.ps1 -Render -Docs -Mcp
+.\install.ps1 -Render -Docs
 # or everything at once:
 .\install.ps1 -All -Skill
 ```
@@ -198,7 +196,7 @@ irm https://raw.githubusercontent.com/longlee218/mdnow/main/install.ps1 -o insta
 Or install uv / pipx manually:
 
 ```powershell
-uv tool install "mdnow[render,docs,mcp] @ git+https://github.com/longlee218/mdnow"
+uv tool install "mdnow[render,docs] @ git+https://github.com/longlee218/mdnow"
 mdnow --fetch-browser   # if using [render]
 ```
 
@@ -260,7 +258,6 @@ mdnow https://example.com --crawl --no-llms -o out/
 | `--fetch-browser` | Download the Camoufox browser for `--render` and exit |
 | `--install-skill` | Install the bundled Claude Code skill to `~/.claude/skills/mdnow` |
 | `--update` | Upgrade mdnow to the latest version from git |
-| `--mcp` | Run as an MCP server (stdio transport) for Claude / Cursor |
 
 ---
 
@@ -273,21 +270,6 @@ mdnow --install-skill --skill-dir ~/.claude/skills/foo  # custom location
 mdnow --install-skill --force                           # overwrite existing
 ```
 The skill lets Claude Code fetch a URL, crawl a site, or convert a file — right from the editor.
-
-### MCP server
-Expose mdnow as an [MCP](https://modelcontextprotocol.io) server for Claude Desktop, Claude Code, or Cursor:
-```bash
-mdnow --mcp
-```
-**Claude Desktop config** (`~/.claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "mdnow": { "command": "/path/to/mdnow", "args": ["--mcp"] }
-  }
-}
-```
-**Tools exposed:** `mdnow_fetch_url` · `mdnow_crawl_site` · `mdnow_convert_file`.
 
 ---
 
@@ -356,11 +338,11 @@ Crawl mode also writes three artifacts:
 git clone https://github.com/longlee218/mdnow.git
 cd mdnow
 python3 -m venv .venv
-.venv/bin/pip install -e ".[dev,docs,mcp]"
-.venv/bin/pytest          # 113 tests, ~88% coverage
+.venv/bin/pip install -e ".[dev,docs]"
+.venv/bin/pytest          # 106 tests, ~88% coverage
 ```
 
-**Architecture** — modules each < 200 lines, one responsibility: `cli`, `discovery`/`llmstxt`, `fetcher` (`StaticFetcher`/`CamoufoxFetcher` behind one `Fetcher` interface), `playwright_patch` (self-healing render-driver fix), `extractor`, `convert` (markitdown wrapper), `crawler`, `urls`, `linkrewrite`, `guards`, `frontmatter`, `outline`, `artifacts`, `writer`, `commands`, `doctor`, `mcp_server`.
+**Architecture** — modules each < 200 lines, one responsibility: `cli`, `discovery`/`llmstxt`, `fetcher` (`StaticFetcher`/`CamoufoxFetcher` behind one `Fetcher` interface), `playwright_patch` (self-healing render-driver fix), `extractor`, `convert` (markitdown wrapper), `crawler`, `urls`, `linkrewrite`, `guards`, `frontmatter`, `outline`, `artifacts`, `writer`, `commands`, `doctor`.
 
 ---
 

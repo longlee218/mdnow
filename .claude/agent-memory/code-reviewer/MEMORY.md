@@ -1,1 +1,1 @@
-- [Optional-extra import hint pattern](project_optional-extras.md) — how mdnow guards optional deps ([render]/[docs]/[mcp]) and the exception-type gotcha
+- [Optional-extra import hint pattern](project_optional-extras.md) — how mdnow guards optional deps ([render]/[docs])

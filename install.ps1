@@ -13,8 +13,7 @@
 # Flags:
 #   -Render        include the [render] extra (Camoufox stealth browser)
 #   -Docs          include the [docs] extra (markitdown file conversion)
-#   -Mcp           include the [mcp] extra (MCP server mode)
-#   -All           shorthand for -Render -Docs -Mcp
+#   -All           shorthand for -Render -Docs
 #   -Skill         install the bundled Claude Code skill after install
 #   -Help          show this help and exit
 #
@@ -25,7 +24,6 @@
 param(
     [switch]$Render,
     [switch]$Docs,
-    [switch]$Mcp,
     [switch]$All,
     [switch]$Skill,
     [switch]$Help
@@ -34,12 +32,11 @@ param(
 $GIT_URL = "git+https://github.com/longlee218/mdnow"
 
 function Show-Usage {
-    Write-Host "Usage: install.ps1 [-Render] [-Docs] [-Mcp] [-All] [-Skill] [-Help]"
+    Write-Host "Usage: install.ps1 [-Render] [-Docs] [-All] [-Skill] [-Help]"
     Write-Host ""
     Write-Host "  -Render   install the [render] extra (Camoufox stealth browser, ~300MB one-time download)"
     Write-Host "  -Docs     install the [docs] extra (markitdown file conversion: PDF, Office, images, audio)"
-    Write-Host "  -Mcp      install the [mcp] extra (MCP server mode for AI assistants)"
-    Write-Host "  -All      shorthand for -Render -Docs -Mcp"
+    Write-Host "  -All      shorthand for -Render -Docs"
     Write-Host "  -Skill    install the bundled Claude Code skill to `$env:USERPROFILE\.claude\skills\mdnow"
     Write-Host "  -Help     show this help and exit"
 }
@@ -52,7 +49,6 @@ if ($Help) {
 if ($All) {
     $Render = $true
     $Docs = $true
-    $Mcp = $true
 }
 
 try {
@@ -86,7 +82,6 @@ try {
     $extras = @()
     if ($Render) { $extras += "render" }
     if ($Docs) { $extras += "docs" }
-    if ($Mcp) { $extras += "mcp" }
 
     if ($extras.Count -gt 0) {
         $pkg = "mdnow[$($extras -join ',')]"

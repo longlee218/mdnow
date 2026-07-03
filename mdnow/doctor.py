@@ -12,7 +12,7 @@ import sys
 
 # mdnow is distributed via git (not PyPI), so install hints use the direct-ref spec.
 _GIT_URL = "git+https://github.com/longlee218/mdnow"
-_EXTRAS = {"render": "render", "docs": "docs", "mcp": "mcp"}
+_EXTRAS = {"render": "render", "docs": "docs"}
 
 
 def _install_hint(extra: str) -> str:
@@ -20,7 +20,7 @@ def _install_hint(extra: str) -> str:
 
 
 def missing_extra_message(feature: str) -> str:
-    """Shared "feature X needs extra Y" hint, reused by mcp/render/docs call sites."""
+    """Shared "feature X needs extra Y" hint, reused by render/docs call sites."""
     extra = _EXTRAS[feature]
     return f"{feature} requires the [{extra}] extra. Run: {_install_hint(extra)}"
 
@@ -76,7 +76,6 @@ def run_checks() -> list[Check]:
         Check("base pipeline", True, "OK (httpx, trafilatura, typer)"),
         _check_extra("docs", "markitdown"),
         _check_extra("render", "camoufox"),
-        _check_extra("mcp", "mcp"),
         _check_render_browser(),
         _check_skill(),
     ]
